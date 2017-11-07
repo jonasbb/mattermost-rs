@@ -3,6 +3,7 @@ extern crate chrono_tz;
 extern crate clap;
 extern crate env_logger;
 #[macro_use]
+extern crate error_chain;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
@@ -19,12 +20,14 @@ mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
 use clap::{Arg, App};
+use error_chain::ChainedError;
 use mattermost_structs::*;
 use mattermost_structs::api::*;
 use mattermost_structs::websocket::*;
 use url::Url;
 use std::fs::File;
 use std::path::Path;
+use std::time::Duration;
 use std::thread;
 use websocket_client::WsClient;
 use ws::connect;
@@ -91,6 +94,7 @@ fn run() -> Result<()> {
             // check internet connectivity
             if client.is_token_valid() {
                 thread_handles.push(spawn_server_handle_thread(server_config.clone(), config.signal_phone_number.clone()));
+                thread_handles.push(spawn_server_watchdog(server_config, config.signal_phone_number.clone()));
             }
         } else {
             eprintln!("Could not connect to server '{}'", server_config.servername);
@@ -146,6 +150,21 @@ fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String
     })
 }
 
+fn spawn_server_watchdog(server_config: ServerConfig, mobile_number: String) -> thread::JoinHandle<Result<()>> {
+    thread::spawn(move || {
+        let client = Client::new(server_config.base_url, server_config.token)?;
+        loop {
+            if !client.is_token_valid() {
+                let msg = format!("Token for {server} expired!",
+                    server=server_config.servername,
+                );
+                if let Err(e) = send_android_notification(&mobile_number, &msg) {
+                    warn!("{}", e.display_chain().to_string());
+                }
+            }
+            thread::sleep(Duration::new(60*60*6, 0)); // 6 hours
+        }
+    })
 }
 
 fn react_to_message(client: &mut WsClient, message: &str) {
