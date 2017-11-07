@@ -295,27 +295,6 @@ fn react_to_message(client: &mut WsClient, message: &str) {
     }
 }
 
-#[allow(dead_code)]
-fn fetch_username(token: String, id: String) -> String {
-    let api = ApiClient::new(token);
-    let users = api.get_users_by_id(&vec![id]).unwrap_or(vec![]);
-    if let Some(user) = users.into_iter().next() {
-        user.username
-    } else {
-        "<Unknown Id>".to_string()
-    }
-}
-
-#[allow(dead_code)]
-fn fetch_channelname(token: String, id: String) -> String {
-    let api = ApiClient::new(token);
-    if let Ok(channel) = api.get_channel_by_id(id) {
-        channel.display_name
-    } else {
-        "<Unknown Id>".to_string()
-    }
-}
-
 fn send_android_notification(mobile_number: &str, message: &str) -> Result<()> {
     use std::process::Command;
     let mut child = Command::new("signal-cli")
