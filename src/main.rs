@@ -21,8 +21,8 @@ use chrono_tz::Europe::Berlin as TzBerlin;
 use clap::{Arg, App};
 use mattermost_structs::*;
 use mattermost_structs::api::*;
-use mattermost_structs::api::Client as ApiClient;
 use mattermost_structs::websocket::*;
+use url::Url;
 use std::fs::File;
 use std::path::Path;
 use std::thread;
@@ -81,72 +81,71 @@ fn run() -> Result<()> {
         "config file will exist",
     ))?)?;
 
-    // Check connectivity and validity of credentials
-    for server_config in &config.servers {
-        println!("Check connectivity for: {}", server_config.servername);
-        let client = Client::new(server_config.token.clone());
-        // check internet connectivity
-        client.get_users(0, 0).unwrap();
-        // create a mapping for all userids
-        // let userid_to_username: HashMap<_, _> =
-        // users.into_iter().map(|u| (u.id, u.username)).collect();
-    }
-
     // spawn a thread for each server
     let mut thread_handles = Vec::new();
-    for server_config in &config.servers {
-        let mobile_number = config.signal_phone_number.clone();
-        // remove trailing "/" if present
-        let base_url = if server_config.base_url.ends_with("/") {
-            &server_config.base_url[..server_config.base_url.len() - 1]
-        } else {
-            &server_config.base_url[..server_config.base_url.len()]
-        };
-        let url = format!("wss://{}/api/v4/websocket", base_url);
-        let server_config = server_config.clone();
-
-        let handle = thread::spawn(move || {
-            // Connect to the url and call the closure
-            if let Err(error) = connect(url, move |out| {
-                // Queue a message to be sent when the WebSocket is open
-                if let Err(_) = out.send(format!(
-                    r#"
-                    {{
-                        "seq": 1,
-                        "action": "authentication_challenge",
-                        "data": {{
-                            "token": "{}"
-                        }}
-                    }}
-                "#,
-                    server_config.token
-                ))
-                {
-                    println!("Websocket couldn't queue an initial message.")
-                }
-
-                WsClient {
-                    ws: out,
-                    timeout: None,
-                    own_id: None,
-                    token: server_config.token.clone(),
-                    servername: server_config.servername.clone(),
-                    mobile_number: mobile_number.clone(),
-                }
-            })
-            {
-                // Inform the user of failure
-                println!("Failed to create WebSocket due to: {:?}", error);
+    // Check connectivity and validity of credentials
+    for server_config in config.servers {
+        println!("Check connectivity for: {}", server_config.servername);
+        let client = Client::new(server_config.base_url.clone(), server_config.token.clone());
+        if let Ok(client) = client {
+            // check internet connectivity
+            if client.is_token_valid() {
+                thread_handles.push(spawn_server_handle_thread(server_config.clone(), config.signal_phone_number.clone()));
             }
-        });
-        thread_handles.push(handle);
+        } else {
+            eprintln!("Could not connect to server '{}'", server_config.servername);
+        }
     }
 
     for handle in thread_handles {
-        handle.join().unwrap();
+        handle.join().unwrap()?;
     }
 
     Ok(())
+}
+
+fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String) -> thread::JoinHandle<Result<()>> {
+    thread::spawn(move || {
+        let mut url = Url::parse(&server_config.base_url)?;
+        url.set_scheme("wss").expect("Setting the scheme to wss must always work");
+        let url = url.join("/api/v4/websocket")?;
+
+        // Connect to the url and call the closure
+        if let Err(error) = connect(url.as_str(), move |out| {
+            // Queue a message to be sent when the WebSocket is open
+            if let Err(_) = out.send(format!(
+                r#"
+                {{
+                    "seq": 1,
+                    "action": "authentication_challenge",
+                    "data": {{
+                        "token": "{}"
+                    }}
+                }}
+            "#,
+                server_config.token
+            ))
+            {
+                eprintln!("Websocket couldn't queue an initial message.")
+            }
+
+            WsClient {
+                ws: out,
+                timeout: None,
+                own_id: None,
+                token: server_config.token.clone(),
+                servername: server_config.servername.clone(),
+                mobile_number: mobile_number.clone(),
+            }
+        })
+        {
+            // Inform the user of failure
+            eprintln!("Failed to create WebSocket due to: {:?}", error);
+        }
+        Ok(())
+    })
+}
+
 }
 
 fn react_to_message(client: &mut WsClient, message: &str) {
