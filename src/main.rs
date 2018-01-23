@@ -52,7 +52,7 @@ quick_main!(run);
 
 fn run() -> Result<()> {
     // Setup logging
-    env_logger::init().unwrap();
+    env_logger::init();
     // this fixes connection problems with openssl
     // it set some environment variables to the correct value for the current system
     openssl_probe::init_ssl_cert_env_vars();
