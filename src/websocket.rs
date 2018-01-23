@@ -128,6 +128,10 @@ pub enum Events {
     },
     ChannelDeleted { channel_id: String },
     DirectAdded { teammate_id: String },
+    UpdateTeam {
+        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        team: Team
+    },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -187,6 +191,8 @@ pub enum PostType {
     SystemJoinChannel,
     SystemHeaderChange,
     SystemChannelDeleted,
+    SystemPurposeChange,
+    SystemDisplaynameChange,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -200,6 +206,14 @@ pub struct PostProps {
     new_header: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    new_purpose: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    old_purpose: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    new_displayname: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    old_displayname: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -224,4 +238,26 @@ pub struct Reaction {
     pub emoji_name: String,
     #[serde(with = "serialize::ts_seconds")]
     pub create_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Team {
+    pub id: String,
+    #[serde(with = "serialize::ts_seconds")]
+    pub create_at: DateTime<Utc>,
+    #[serde(with = "serialize::ts_seconds")]
+    pub update_at: DateTime<Utc>,
+    #[serde(with = "serialize::ts_seconds")]
+    pub delete_at: DateTime<Utc>,
+    pub display_name: String,
+    pub name: String,
+    pub description: String,
+    pub email: String,
+    #[serde(rename = "type")]
+    pub type_: ChannelType,
+    pub company_name: String,
+    pub allowed_domains: String,
+    pub invite_id: String,
+    pub allow_open_invite: bool,
 }
