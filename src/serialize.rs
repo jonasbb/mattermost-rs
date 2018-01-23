@@ -6,7 +6,7 @@ where
     D: ::serde::de::Deserializer<'de>,
     T: ::serde::de::DeserializeOwned,
 {
-    use serde::de::*;
+    use serde::de::{DeserializeOwned, Error, Visitor};
     use serde_json;
     use std::fmt;
     use std::marker::PhantomData;
@@ -43,7 +43,7 @@ where
     T: Hash,
     T: Eq,
 {
-    use serde::de::*;
+    use serde::de::{DeserializeOwned, Error, Visitor};
     use serde_json;
     use std::fmt;
     use std::marker::PhantomData;
@@ -159,7 +159,7 @@ pub mod ts_seconds {
     where
         S: ser::Serializer,
     {
-        serializer.serialize_i64(dt.timestamp() * 1000 + dt.timestamp_subsec_millis() as i64)
+        serializer.serialize_i64(dt.timestamp() * 1000 + i64::from(dt.timestamp_subsec_millis()))
     }
 
     struct MillisecondsTimestampVisitor;
@@ -293,8 +293,9 @@ pub mod option_ts_milliseconds {
     where
         S: ser::Serializer,
     {
-        if let &Some(dt) = dt {
-            serializer.serialize_i64(dt.timestamp() * 1000 + dt.timestamp_subsec_millis() as i64)
+        if let Some(dt) = *dt {
+            serializer
+                .serialize_i64(dt.timestamp() * 1000 + i64::from(dt.timestamp_subsec_millis()))
         } else {
             serializer.serialize_unit()
         }

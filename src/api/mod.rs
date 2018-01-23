@@ -1,5 +1,5 @@
-use chrono::prelude::*;
-use error::*;
+use chrono::prelude::{DateTime, Utc};
+use error::{ErrorKind, Result, ResultExt};
 use reqwest::{Client as WebClient, StatusCode};
 use reqwest::header::{Authorization, Bearer};
 use std::collections::HashSet;
@@ -79,11 +79,12 @@ impl Client {
         }
     }
 
-    pub fn get_channel_by_id(&self, id: String) -> Result<Channel> {
+    pub fn get_channel_by_id<S>(&self, id: S) -> Result<Channel>
+    where
+        S: AsRef<str>,
+    {
         let client = WebClient::new();
-        let url = self.base_url
-            .join("/api/v4/channels/")?
-            .join(&id.to_string())?;
+        let url = self.base_url.join("/api/v4/channels/")?.join(id.as_ref())?;
         let mut res = client
             .get(url)
             .header(Authorization(Bearer {

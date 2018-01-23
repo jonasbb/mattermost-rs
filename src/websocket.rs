@@ -1,7 +1,7 @@
 use serialize;
 
 use api::{Channel, ChannelType, User};
-use chrono::prelude::*;
+use chrono::prelude::{DateTime, Utc};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize)]
@@ -16,7 +16,7 @@ impl<'de> ::serde::de::Deserialize<'de> for Message {
     where
         D: ::serde::de::Deserializer<'de>,
     {
-        use serde::de::*;
+        use serde::de::{Error, Expected, Unexpected};
 
         struct HExpected;
 

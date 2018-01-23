@@ -3,13 +3,13 @@
 extern crate mattermost_structs;
 extern crate serde_json;
 
-use mattermost_structs::websocket::*;
+use mattermost_structs::websocket::Message;
 use serde_json::{Deserializer, Value};
 use std::io::stdin;
 
 fn main() {
     println!("Read json lines from stdin...");
-    println!("");
+    println!();
 
     let sin = stdin();
     let stream = Deserializer::from_reader(sin.lock()).into_iter::<Value>();

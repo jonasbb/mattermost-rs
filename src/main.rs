@@ -22,9 +22,9 @@ mod websocket_client;
 use chrono_tz::Europe::Berlin as TzBerlin;
 use clap::{App, Arg};
 use error_chain::ChainedError;
-use mattermost_structs::*;
-use mattermost_structs::api::*;
-use mattermost_structs::websocket::*;
+use mattermost_structs::Result;
+use mattermost_structs::api::{ChannelType, Client};
+use mattermost_structs::websocket::{Events, Message};
 use std::fs::File;
 use std::path::Path;
 use std::thread;
@@ -128,7 +128,7 @@ fn spawn_server_handle_thread(
         // Connect to the url and call the closure
         if let Err(error) = connect(url.as_str(), move |out| {
             // Queue a message to be sent when the WebSocket is open
-            if let Err(_) = out.send(format!(
+            if out.send(format!(
                 r#"
                 {{
                     "seq": 1,
@@ -139,7 +139,8 @@ fn spawn_server_handle_thread(
                 }}
             "#,
                 server_config.token
-            )) {
+            )).is_err()
+            {
                 eprintln!("Websocket couldn't queue an initial message.")
             }
 

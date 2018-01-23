@@ -9,7 +9,7 @@ const EXPIRE_TIMEOUT: u64 = 60_000;
 
 lazy_static! {
     /// A special value used for the Ping messages.
-    static ref PING_PONG: Vec<u8> = Vec::from("mattermost-client".as_bytes());
+    static ref PING_PONG: Vec<u8> = Vec::from(b"mattermost-client" as &[u8]);
 }
 
 pub struct WsClient {
