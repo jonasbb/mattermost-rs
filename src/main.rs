@@ -14,21 +14,25 @@ extern crate openssl_probe;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_yaml;
+extern crate structopt;
+#[macro_use]
+extern crate structopt_derive;
 extern crate url;
 extern crate ws;
 
 mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
-use clap::{App, Arg};
 use error_chain::ChainedError;
 use mattermost_structs::Result;
 use mattermost_structs::api::{ChannelType, Client};
 use mattermost_structs::websocket::{Events, Message};
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
+use structopt::StructOpt;
 use url::Url;
 use websocket_client::WsClient;
 use ws::connect;
@@ -48,6 +52,27 @@ struct ServerConfig {
     servername: String,
 }
 
+/// Mattermost to Signal Bridge
+#[derive(Debug, StructOpt)]
+#[structopt(author = "", setting_raw = "clap::AppSettings::ColoredHelp")]
+struct CliArgs {
+    /// Sets a custom config file
+    #[structopt(short = "c", long = "config", parse(from_os_str),
+                validator_os_raw = "path_is_file")]
+    config: PathBuf,
+}
+
+fn path_is_file(value: &OsStr) -> std::result::Result<(), OsString> {
+    let path = Path::new(value);
+    if !path.exists() {
+        return Err("Config file does not exist".into());
+    }
+    if !path.is_file() {
+        return Err("Config file must be a file".into());
+    }
+    Ok(())
+}
+
 quick_main!(run);
 
 fn run() -> Result<()> {
@@ -57,33 +82,10 @@ fn run() -> Result<()> {
     // it set some environment variables to the correct value for the current system
     openssl_probe::init_ssl_cert_env_vars();
 
-    let matches = App::new("Mattermost to Signal Bridge")
-                        .version("0.1")
-                        // .about("Does awesome things")
-                        .arg(Arg::with_name("config")
-                            .short("c")
-                            .long("config")
-                            .value_name("FILE")
-                            .required(true)
-                            .validator_os(|value| {
-                                let path  = Path::new(value);
-                                if !path.exists() {
-                                    return Err("Config file does not exist".into())
-                                }
-                                if !path.is_file() {
-                                    return Err("Config file must be a file".into())
-                                }
-                                Ok(())
-                            })
-                            .help("Sets a custom config file")
-                            .takes_value(true))
-                        .get_matches();
+    // parse arguments
+    let args = CliArgs::from_args();
 
-    let config: Config = serde_yaml::from_reader(File::open(
-        matches
-            .value_of_os("config")
-            .expect("config file will exist"),
-    )?)?;
+    let config: Config = serde_yaml::from_reader(File::open(args.config)?)?;
 
     // spawn a thread for each server
     let mut thread_handles = Vec::new();
