@@ -1,6 +1,6 @@
 use super::react_to_message;
-use ws::{OpCode, Frame, Sender, CloseCode, Handshake};
-use ws::util::{Token, Timeout};
+use ws::{CloseCode, Frame, Handshake, OpCode, Sender};
+use ws::util::{Timeout, Token};
 
 const PING: Token = Token(1);
 const PING_TIMEOUT: u64 = 10_000;
@@ -11,7 +11,6 @@ lazy_static! {
     /// A special value used for the Ping messages.
     static ref PING_PONG: Vec<u8> = Vec::from("mattermost-client".as_bytes());
 }
-
 
 pub struct WsClient {
     pub ws: Sender,

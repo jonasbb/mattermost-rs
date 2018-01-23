@@ -6,9 +6,9 @@ where
     D: ::serde::de::Deserializer<'de>,
     T: ::serde::de::DeserializeOwned,
 {
-    use std::fmt;
     use serde::de::*;
     use serde_json;
+    use std::fmt;
     use std::marker::PhantomData;
     #[derive(Default)]
     struct Helper<S: DeserializeOwned>(PhantomData<S>);
@@ -43,9 +43,9 @@ where
     T: Hash,
     T: Eq,
 {
-    use std::fmt;
     use serde::de::*;
     use serde_json;
+    use std::fmt;
     use std::marker::PhantomData;
     #[derive(Default)]
     struct Helper<S: DeserializeOwned>(PhantomData<S>);
@@ -79,10 +79,10 @@ where
 }
 
 pub mod ts_seconds {
+    use serde::{de, ser};
     use std::fmt;
-    use serde::{ser, de};
 
-    use chrono::{DateTime, Utc, FixedOffset};
+    use chrono::{DateTime, FixedOffset, Utc};
     use chrono::offset::{LocalResult, TimeZone};
 
     /// Deserialize a `DateTime` from a milliseconds timestamp
@@ -118,9 +118,8 @@ pub mod ts_seconds {
         D: de::Deserializer<'de>,
     {
         Ok(try!(
-            d.deserialize_i64(MillisecondsTimestampVisitor).map(|dt| {
-                dt.with_timezone(&Utc)
-            })
+            d.deserialize_i64(MillisecondsTimestampVisitor)
+                .map(|dt| dt.with_timezone(&Utc))
         ))
     }
 
@@ -189,10 +188,8 @@ pub mod ts_seconds {
             E: de::Error,
         {
             from(
-                FixedOffset::east(0).timestamp_opt(
-                    (value / 1000) as i64,
-                    (value % 1000 * 1_000_000) as u32,
-                ),
+                FixedOffset::east(0)
+                    .timestamp_opt((value / 1000) as i64, (value % 1000 * 1_000_000) as u32),
                 &value,
             )
         }
@@ -209,9 +206,7 @@ pub mod ts_seconds {
             LocalResult::None => Err(E::custom(format!("value is not a legal timestamp: {}", ts))),
             LocalResult::Ambiguous(min, max) => Err(E::custom(format!(
                 "value is an ambiguous timestamp: {}, could be either of {}, {}",
-                ts,
-                min,
-                max
+                ts, min, max
             ))),
             LocalResult::Single(val) => Ok(val),
         }
@@ -220,10 +215,10 @@ pub mod ts_seconds {
 
 pub mod option_ts_milliseconds {
     //FIXME comments
+    use serde::{de, ser};
     use std::fmt;
-    use serde::{ser, de};
 
-    use chrono::{DateTime, Utc, FixedOffset};
+    use chrono::{DateTime, FixedOffset, Utc};
     use chrono::offset::{LocalResult, TimeZone};
 
     /// Deserialize a `DateTime` from a milliseconds timestamp
@@ -258,11 +253,8 @@ pub mod option_ts_milliseconds {
     where
         D: de::Deserializer<'de>,
     {
-        Ok(Some(
-            d.deserialize_i64(MillisecondsTimestampVisitor).map(|dt| {
-                dt.with_timezone(&Utc)
-            })?,
-        ))
+        Ok(Some(d.deserialize_i64(MillisecondsTimestampVisitor)
+            .map(|dt| dt.with_timezone(&Utc))?))
     }
 
     /// Serialize a UTC datetime into an integer number of milliseconds since the epoch
@@ -339,10 +331,8 @@ pub mod option_ts_milliseconds {
             E: de::Error,
         {
             from(
-                FixedOffset::east(0).timestamp_opt(
-                    (value / 1000) as i64,
-                    (value % 1000 * 1_000_000) as u32,
-                ),
+                FixedOffset::east(0)
+                    .timestamp_opt((value / 1000) as i64, (value % 1000 * 1_000_000) as u32),
                 &value,
             )
         }
@@ -359,9 +349,7 @@ pub mod option_ts_milliseconds {
             LocalResult::None => Err(E::custom(format!("value is not a legal timestamp: {}", ts))),
             LocalResult::Ambiguous(min, max) => Err(E::custom(format!(
                 "value is an ambiguous timestamp: {}, could be either of {}, {}",
-                ts,
-                min,
-                max
+                ts, min, max
             ))),
             LocalResult::Single(val) => Ok(val),
         }

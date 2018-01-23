@@ -20,16 +20,16 @@ extern crate ws;
 mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
-use clap::{Arg, App};
+use clap::{App, Arg};
 use error_chain::ChainedError;
 use mattermost_structs::*;
 use mattermost_structs::api::*;
 use mattermost_structs::websocket::*;
-use url::Url;
 use std::fs::File;
 use std::path::Path;
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
+use url::Url;
 use websocket_client::WsClient;
 use ws::connect;
 
@@ -79,9 +79,11 @@ fn run() -> Result<()> {
                             .takes_value(true))
                         .get_matches();
 
-    let config: Config = serde_yaml::from_reader(File::open(matches.value_of_os("config").expect(
-        "config file will exist",
-    ))?)?;
+    let config: Config = serde_yaml::from_reader(File::open(
+        matches
+            .value_of_os("config")
+            .expect("config file will exist"),
+    )?)?;
 
     // spawn a thread for each server
     let mut thread_handles = Vec::new();
@@ -92,8 +94,14 @@ fn run() -> Result<()> {
         if let Ok(client) = client {
             // check internet connectivity
             if client.is_token_valid() {
-                thread_handles.push(spawn_server_handle_thread(server_config.clone(), config.signal_phone_number.clone()));
-                thread_handles.push(spawn_server_watchdog(server_config, config.signal_phone_number.clone()));
+                thread_handles.push(spawn_server_handle_thread(
+                    server_config.clone(),
+                    config.signal_phone_number.clone(),
+                ));
+                thread_handles.push(spawn_server_watchdog(
+                    server_config,
+                    config.signal_phone_number.clone(),
+                ));
             }
         } else {
             eprintln!("Could not connect to server '{}'", server_config.servername);
@@ -107,10 +115,14 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String) -> thread::JoinHandle<Result<()>> {
+fn spawn_server_handle_thread(
+    server_config: ServerConfig,
+    mobile_number: String,
+) -> thread::JoinHandle<Result<()>> {
     thread::spawn(move || {
         let mut url = Url::parse(&server_config.base_url)?;
-        url.set_scheme("wss").expect("Setting the scheme to wss must always work");
+        url.set_scheme("wss")
+            .expect("Setting the scheme to wss must always work");
         let url = url.join("/api/v4/websocket")?;
 
         // Connect to the url and call the closure
@@ -127,8 +139,7 @@ fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String
                 }}
             "#,
                 server_config.token
-            ))
-            {
+            )) {
                 eprintln!("Websocket couldn't queue an initial message.")
             }
 
@@ -140,8 +151,7 @@ fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String
                 servername: server_config.servername.clone(),
                 mobile_number: mobile_number.clone(),
             }
-        })
-        {
+        }) {
             // Inform the user of failure
             eprintln!("Failed to create WebSocket due to: {:?}", error);
         }
@@ -149,26 +159,29 @@ fn spawn_server_handle_thread(server_config: ServerConfig, mobile_number: String
     })
 }
 
-fn spawn_server_watchdog(server_config: ServerConfig, mobile_number: String) -> thread::JoinHandle<Result<()>> {
+fn spawn_server_watchdog(
+    server_config: ServerConfig,
+    mobile_number: String,
+) -> thread::JoinHandle<Result<()>> {
     thread::spawn(move || {
         let client = Client::new(server_config.base_url, server_config.token)?;
         loop {
             if !client.is_token_valid() {
-                let msg = format!("Token for {server} expired!",
-                    server=server_config.servername,
+                let msg = format!(
+                    "Token for {server} expired!",
+                    server = server_config.servername,
                 );
                 if let Err(e) = send_android_notification(&mobile_number, &msg) {
                     warn!("{}", e.display_chain().to_string());
                 }
             }
-            thread::sleep(Duration::new(60*60*6, 0)); // 6 hours
+            thread::sleep(Duration::new(60 * 60 * 6, 0)); // 6 hours
         }
     })
 }
 
 fn react_to_message(client: &mut WsClient, message: &str) {
     if let Ok(msg) = serde_json::from_str::<Message>(message) {
-
         // ignore broadcast events which cover us
         if let Some(ref own_id) = client.own_id {
             if let Some(ref omit_users) = msg.broadcast.omit_users {
@@ -204,23 +217,21 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                         use std::thread;
                         let localtime = post.create_at.with_timezone(&TzBerlin).format("%H:%M:%S");
                         let testmessage = match channel_type {
-                            ChannelType::DirectMessage => {
-                                format!("{server} {sender}:\n{message}\n@{time}",
-                                    message=post.message,
-                                    sender=sender_name,
-                                    server=client.servername,
-                                    time=localtime,
-                                )
-                            }
-                            ChannelType::Open | ChannelType::Private => {
-                                format!("{server} {sender} in {channel}:\n{message}\n@{time}",
-                                    message=post.message,
-                                    sender=sender_name,
-                                    server=client.servername,
-                                    channel=channel_display_name,
-                                    time=localtime,
-                                )
-                            }
+                            ChannelType::DirectMessage => format!(
+                                "{server} {sender}:\n{message}\n@{time}",
+                                message = post.message,
+                                sender = sender_name,
+                                server = client.servername,
+                                time = localtime,
+                            ),
+                            ChannelType::Open | ChannelType::Private => format!(
+                                "{server} {sender} in {channel}:\n{message}\n@{time}",
+                                message = post.message,
+                                sender = sender_name,
+                                server = client.servername,
+                                channel = channel_display_name,
+                                time = localtime,
+                            ),
                         };
                         let mobile_number = client.mobile_number.clone();
                         thread::spawn(move || {

@@ -30,13 +30,14 @@ impl Client {
     pub fn get_users(&self, page: usize, per_page: usize) -> Result<Vec<User>> {
         let client = WebClient::new();
         let mut url = self.base_url.join("/api/v4/users")?;
-        url
-            .query_pairs_mut()
+        url.query_pairs_mut()
             .append_pair("page", &page.to_string())
             .append_pair("per_page", &per_page.to_string());
         let mut res = client
             .get(url)
-            .header(Authorization(Bearer { token: self.token.clone() }))
+            .header(Authorization(Bearer {
+                token: self.token.clone(),
+            }))
             .send()
             .chain_err(|| "Failed to send webrequest")?;
 
@@ -58,7 +59,9 @@ impl Client {
         let url = self.base_url.join("/api/v4/users/ids")?;
         let mut res = client
             .post(url)
-            .header(Authorization(Bearer { token: self.token.clone() }))
+            .header(Authorization(Bearer {
+                token: self.token.clone(),
+            }))
             .json(&ids)
             .send()
             .chain_err(|| "Failed to send webrequest")?;
@@ -78,10 +81,14 @@ impl Client {
 
     pub fn get_channel_by_id(&self, id: String) -> Result<Channel> {
         let client = WebClient::new();
-        let url = self.base_url.join("/api/v4/channels/")?.join(&id.to_string())?;
+        let url = self.base_url
+            .join("/api/v4/channels/")?
+            .join(&id.to_string())?;
         let mut res = client
             .get(url)
-            .header(Authorization(Bearer { token: self.token.clone() }))
+            .header(Authorization(Bearer {
+                token: self.token.clone(),
+            }))
             .send()
             .chain_err(|| "Failed to send webrequest")?;
 
@@ -124,11 +131,11 @@ pub struct User {
     pub locale: String,
     // pub notify_props: {},
     // pub props: {},
-    #[serde(skip_serializing_if = "Option::is_none", with = "::serialize::option_ts_milliseconds",
-            default)]
+    #[serde(skip_serializing_if = "Option::is_none",
+            with = "::serialize::option_ts_milliseconds", default)]
     pub last_password_update: Option<DateTime<Utc>>,
-    #[serde(skip_serializing_if = "Option::is_none", with = "::serialize::option_ts_milliseconds",
-            default)]
+    #[serde(skip_serializing_if = "Option::is_none",
+            with = "::serialize::option_ts_milliseconds", default)]
     pub last_picture_update: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed_attempts: Option<u64>,
@@ -168,10 +175,7 @@ pub struct Channel {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum ChannelType {
-    #[serde(rename = "O")]
-    Open,
-    #[serde(rename = "P")]
-    Private,
-    #[serde(rename = "D")]
-    DirectMessage,
+    #[serde(rename = "O")] Open,
+    #[serde(rename = "P")] Private,
+    #[serde(rename = "D")] DirectMessage,
 }

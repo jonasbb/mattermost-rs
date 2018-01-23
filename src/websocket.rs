@@ -1,8 +1,8 @@
 use serialize;
 
+use api::{Channel, ChannelType, User};
 use chrono::prelude::*;
 use std::collections::HashMap;
-use api::{Channel, ChannelType, User};
 
 #[derive(Debug, Serialize)]
 pub struct Message {
@@ -72,13 +72,21 @@ impl<'de> ::serde::de::Deserialize<'de> for Message {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event", content = "data", deny_unknown_fields, rename_all = "snake_case")]
 pub enum Events {
-    Hello { server_version: String },
-    StatusChange { status: Status, user_id: String },
+    Hello {
+        server_version: String,
+    },
+    StatusChange {
+        status: Status,
+        user_id: String,
+    },
     EphemeralMessage {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         post: Post,
     },
-    Typing { parent_id: String, user_id: String },
+    Typing {
+        parent_id: String,
+        user_id: String,
+    },
     Posted {
         channel_display_name: String,
         channel_name: String,
@@ -104,15 +112,26 @@ pub enum Events {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         post: Post,
     },
-    ChannelCreated { channel_id: String, team_id: String },
-    PreferencesChanged { preferences: String },
-    UserUpdated { user: User },
+    ChannelCreated {
+        channel_id: String,
+        team_id: String,
+    },
+    PreferencesChanged {
+        preferences: String,
+    },
+    UserUpdated {
+        user: User,
+    },
     PostDeleted {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         post: Post,
     },
-    ChannelViewed { channel_id: String },
-    PreferencesDeleted { preferences: String },
+    ChannelViewed {
+        channel_id: String,
+    },
+    PreferencesDeleted {
+        preferences: String,
+    },
     ChannelUpdated {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         channel: Channel,
@@ -121,16 +140,22 @@ pub enum Events {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         reaction: Reaction,
     },
-    NewUser { user_id: String },
+    NewUser {
+        user_id: String,
+    },
     EmojiAdded {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         emoji: Emoji,
     },
-    ChannelDeleted { channel_id: String },
-    DirectAdded { teammate_id: String },
+    ChannelDeleted {
+        channel_id: String,
+    },
+    DirectAdded {
+        teammate_id: String,
+    },
     UpdateTeam {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
-        team: Team
+        team: Team,
     },
 }
 
@@ -185,8 +210,7 @@ pub struct Post {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum PostType {
-    #[serde(rename = "")]
-    UserMessage,
+    #[serde(rename = "")] UserMessage,
     SystemEphemeral,
     SystemJoinChannel,
     SystemHeaderChange,
