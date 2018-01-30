@@ -173,6 +173,7 @@ pub struct Broadcast {
 pub enum Status {
     Online,
     Away,
+    #[serde(rename = "dnd")] DoNotDisturb,
     Offline,
 }
 
