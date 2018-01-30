@@ -69,7 +69,7 @@ impl<'de> ::serde::de::Deserialize<'de> for Message {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(tag = "event", content = "data", deny_unknown_fields, rename_all = "snake_case")]
 pub enum Events {
     Hello {
@@ -159,7 +159,7 @@ pub enum Events {
     },
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Broadcast {
     pub omit_users: Option<HashMap<String, bool>>,
@@ -168,7 +168,7 @@ pub struct Broadcast {
     pub team_id: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum Status {
     Online,
@@ -176,7 +176,7 @@ pub enum Status {
     Offline,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Post {
     pub id: String,
@@ -207,7 +207,7 @@ pub struct Post {
     pub has_reactions: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum PostType {
     #[serde(rename = "")] UserMessage,
@@ -219,7 +219,7 @@ pub enum PostType {
     SystemDisplaynameChange,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(deny_unknown_fields)]
 pub struct PostProps {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -240,7 +240,7 @@ pub struct PostProps {
     old_displayname: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(deny_unknown_fields)]
 pub struct Emoji {
     pub id: String,
@@ -254,7 +254,7 @@ pub struct Emoji {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(deny_unknown_fields)]
 pub struct Reaction {
     pub user_id: String,
@@ -264,7 +264,7 @@ pub struct Reaction {
     pub create_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(deny_unknown_fields)]
 pub struct Team {
     pub id: String,

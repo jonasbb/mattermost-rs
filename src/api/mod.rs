@@ -107,7 +107,7 @@ impl Client {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct User {
     pub id: String,
@@ -144,14 +144,14 @@ pub struct User {
     pub mfa_active: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Copy, Clone, Ord, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub enum UserRole {
     SystemUser,
     SystemAdmin,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct Channel {
     id: String,
@@ -174,7 +174,7 @@ pub struct Channel {
     pub creator_id: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ChannelType {
     #[serde(rename = "O")] Open,
     #[serde(rename = "P")] Private,
