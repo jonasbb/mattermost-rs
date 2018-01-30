@@ -9,6 +9,11 @@ doc = false
 path = "src/main.rs"
 
 [[bin]]
+name = "mmdump"
+doc = true
+path = "src/bin/mmdump.rs"
+
+[[bin]]
 name = "test_parse_log"
 path = "src/bin/test_parse_log.rs"
 
