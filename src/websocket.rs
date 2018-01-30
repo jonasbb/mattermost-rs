@@ -42,12 +42,14 @@ impl<'de> ::serde::de::Deserialize<'de> for Message {
                 helper.broadcast = ::serde_json::from_value(v).ok();
             } else {
                 // TODO make better error message here
+                warn!("No broadcast field in message");
                 return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
             }
             if let Some(v) = map.remove("seq") {
                 helper.seq = ::serde_json::from_value(v).ok();
             } else {
                 // TODO make better error message here
+                warn!("No seq field in message");
                 return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
             }
         } else {
