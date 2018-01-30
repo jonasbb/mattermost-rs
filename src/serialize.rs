@@ -1,6 +1,3 @@
-use std::collections::HashSet;
-use std::hash::Hash;
-
 pub fn deserialize_embedded_json<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: ::serde::de::Deserializer<'de>,
@@ -31,29 +28,52 @@ where
         }
     }
 
-    deserializer.deserialize_any(Helper(PhantomData))
+    deserializer.deserialize_str(Helper(PhantomData))
 }
 
-use std::fmt::Debug;
-pub fn deserialize_string_set<'de, D, T>(deserializer: D) -> Result<HashSet<T>, D::Error>
-where
-    D: ::serde::de::Deserializer<'de>,
-    T: ::serde::de::DeserializeOwned,
-    T: Debug,
-    T: Hash,
-    T: Eq,
-{
-    use serde::de::{DeserializeOwned, Error, Visitor};
+pub mod string_set {
+    use serde::{de, ser};
     use serde_json;
+    use std::collections::HashSet;
     use std::fmt;
+    use std::hash::Hash;
     use std::marker::PhantomData;
-    #[derive(Default)]
-    struct Helper<S: DeserializeOwned>(PhantomData<S>);
 
-    impl<'de, S> Visitor<'de> for Helper<S>
+    pub fn serialize<S, T>(hs: &HashSet<T>, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: DeserializeOwned,
-        S: Debug,
+        S: ser::Serializer,
+        T: ser::Serialize,
+        T: Hash,
+        T: Eq,
+    {
+        // append all elements into the string
+        let mut bytes = Vec::new();
+        for elem in hs {
+            serde_json::to_writer(&mut bytes, &elem).map_err(ser::Error::custom)?;
+            bytes.push(' ' as u8);
+        }
+        // We can convert this Vec<u8> into string without checking for UTF-8
+        // This is exactly what serde_json also does
+        // https://docs.rs/serde_json/1.0.9/src/serde_json/ser.rs.html#1788
+        let string = unsafe { String::from_utf8_unchecked(bytes) };
+        serializer.serialize_str(&*string)
+    }
+
+    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<HashSet<T>, D::Error>
+    where
+        D: de::Deserializer<'de>,
+        T: de::DeserializeOwned,
+        T: Hash,
+        T: Eq,
+    {
+        deserializer.deserialize_any(Helper(PhantomData))
+    }
+    #[derive(Default)]
+    struct Helper<S: de::DeserializeOwned>(PhantomData<S>);
+
+    impl<'de, S> de::Visitor<'de> for Helper<S>
+    where
+        S: de::DeserializeOwned,
         S: Hash,
         S: Eq,
     {
@@ -65,17 +85,69 @@ where
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
-            E: Error,
+            E: de::Error,
         {
             value
                 .split_whitespace()
                 .map(|v| serde_json::from_str(&*format!("\"{}\"", v)))
                 .collect::<Result<_, _>>()
-                .map_err(Error::custom)
+                .map_err(de::Error::custom)
+        }
+
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Self::Value::default())
         }
     }
 
-    deserializer.deserialize_str(Helper(PhantomData))
+    #[test]
+    fn string_set_de_null() {
+        #[derive(Deserialize, Debug)]
+        struct Test {
+            #[serde(with = "::serialize::string_set")]
+            field: HashSet<String>,
+        };
+        let data = r#"{"field": null}"#;
+
+        let res: Result<Test, _> = serde_json::from_str(data);
+        assert!(res.is_ok());
+        let res = res.unwrap();
+        assert!(res.field.is_empty());
+    }
+
+    #[test]
+    fn string_set_de_empty() {
+        #[derive(Deserialize, Debug)]
+        struct Test {
+            #[serde(with = "::serialize::string_set")]
+            field: HashSet<String>,
+        };
+        let data = r#"{"field": ""}"#;
+
+        let res: Result<Test, _> = serde_json::from_str(data);
+        assert!(res.is_ok());
+        let res = res.unwrap();
+        assert!(res.field.is_empty());
+    }
+
+    #[test]
+    fn string_set_de() {
+        #[derive(Deserialize, Debug)]
+        struct Test {
+            #[serde(with = "::serialize::string_set")]
+            field: HashSet<String>,
+        };
+        let data = r##"{"field": "#hash #tag"}"##;
+
+        let res: Result<Test, _> = serde_json::from_str(data);
+        assert!(res.is_ok());
+        let res = res.unwrap();
+        assert_eq!(res.field.len(), 2);
+        assert!(res.field.contains("#hash"));
+        assert!(res.field.contains("#tag"));
+    }
 }
 
 pub mod ts_seconds {

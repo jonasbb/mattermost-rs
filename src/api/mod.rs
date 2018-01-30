@@ -126,7 +126,7 @@ pub struct User {
     pub auth_data: String,
     pub auth_service: String,
     pub position: String,
-    #[serde(deserialize_with = "::serialize::deserialize_string_set")]
+    #[serde(with = "::serialize::string_set")]
     pub roles: HashSet<UserRole>,
     // pub roles: UserRole,
     pub locale: String,
