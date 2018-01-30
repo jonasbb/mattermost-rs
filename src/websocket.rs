@@ -1,4 +1,5 @@
 use serialize;
+use std::collections::HashSet;
 
 use api::{Channel, ChannelType, User};
 use chrono::prelude::{DateTime, Utc};
@@ -199,11 +200,11 @@ pub struct Post {
     #[serde(rename = "type")]
     pub type_: PostType,
     pub props: PostProps,
-    // FIXME hashtags are a whitespace-separated string
-    pub hashtags: String,
+    #[serde(with = "::serialize::string_set")]
+    pub hashtags: HashSet<String>,
     pub pending_post_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_ids: Option<Vec<String>>,
+    #[serde(skip_serializing_if="Vec::is_empty", default)]
+    pub file_ids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub has_reactions: Option<bool>,
 }
