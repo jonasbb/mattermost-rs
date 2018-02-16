@@ -106,7 +106,7 @@ fn run() -> Result<()> {
                 ));
             }
         } else {
-            eprintln!("Could not connect to server '{}'", server_config.servername);
+            error!("Could not connect to server '{}'", server_config.servername);
         }
     }
 
@@ -143,7 +143,7 @@ fn spawn_server_handle_thread(
                 server_config.token
             )).is_err()
             {
-                eprintln!("Websocket couldn't queue an initial message.")
+                    error!("Websocket couldn't queue an initial message.")
             }
 
             WsClient {
@@ -156,7 +156,7 @@ fn spawn_server_handle_thread(
             }
         }) {
             // Inform the user of failure
-            eprintln!("Failed to create WebSocket due to: {:?}", error);
+                error!("Failed to create WebSocket due to: {:?}", error);
         }
         Ok(())
     })
@@ -185,6 +185,8 @@ fn spawn_server_watchdog(
 
 fn react_to_message(client: &mut WsClient, message: &str) {
     if let Ok(msg) = serde_json::from_str::<Message>(message) {
+        debug!("Received message:\n{:?}", msg);
+
         // ignore broadcast events which cover us
         if let Some(ref own_id) = client.own_id {
             if let Some(ref omit_users) = msg.broadcast.omit_users {
@@ -210,8 +212,6 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                 mentions,
                 ..
             } => {
-                eprintln!("{:?}", post);
-
                 // only send push notification when we are mentioned
                 if let Some(mentions) = mentions {
                     if mentions.contains(client.own_id.as_ref().unwrap()) {
@@ -248,8 +248,8 @@ fn react_to_message(client: &mut WsClient, message: &str) {
             _ => {}
         }
     } else {
-        eprintln!("Could not parse the following message:");
-        eprintln!("{}", message);
+        warn!("Could not parse the following message:");
+        warn!("{}", message);
     }
 }
 
