@@ -1,4 +1,3 @@
-extern crate clap;
 extern crate env_logger;
 #[macro_use]
 extern crate error_chain;
@@ -8,9 +7,8 @@ extern crate mattermost_structs;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
-extern crate structopt;
 #[macro_use]
-extern crate structopt_derive;
+extern crate structopt;
 extern crate url;
 extern crate ws;
 
@@ -37,11 +35,11 @@ struct ServerConfig {
 
 /// Mattermost to Signal Bridge
 #[derive(Debug, StructOpt)]
-#[structopt(author = "", setting_raw = "clap::AppSettings::ColoredHelp")]
+#[structopt(author = "", raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 struct CliArgs {
     /// Sets a custom config file
     #[structopt(short = "c", long = "config", parse(from_os_str),
-                validator_os_raw = "path_is_file")]
+                raw(validator_os = "path_is_file"))]
     config: PathBuf,
 
     /// Select server if multiple server are present in the configuration. Start with 1
