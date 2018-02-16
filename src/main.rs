@@ -121,44 +121,70 @@ fn spawn_server_handle_thread(
     server_config: ServerConfig,
     mobile_number: String,
 ) -> thread::JoinHandle<Result<()>> {
-    thread::spawn(move || {
-        let mut url = Url::parse(&server_config.base_url)?;
-        url.set_scheme("wss")
-            .expect("Setting the scheme to wss must always work");
-        let url = url.join("/api/v4/websocket")?;
+    fn handle_server(
+        base_url: String,
+        token: String,
+        servername: String,
+        mobile_number: String,
+    ) -> thread::JoinHandle<Result<()>> {
+        thread::spawn(move || {
+            let mut url = Url::parse(&*base_url)?;
+            url.set_scheme("wss")
+                .expect("Setting the scheme to wss must always work");
+            let url = url.join("/api/v4/websocket")?;
 
-        // Connect to the url and call the closure
-        if let Err(error) = connect(url.as_str(), move |out| {
-            // Queue a message to be sent when the WebSocket is open
-            if out.send(format!(
-                r#"
-                {{
-                    "seq": 1,
-                    "action": "authentication_challenge",
-                    "data": {{
-                        "token": "{}"
+            // Connect to the url and call the closure
+            if let Err(error) = connect(url.as_str(), move |out| {
+                // Queue a message to be sent when the WebSocket is open
+                if out.send(format!(
+                    r#"
+                    {{
+                        "seq": 1,
+                        "action": "authentication_challenge",
+                        "data": {{
+                            "token": "{}"
+                        }}
                     }}
-                }}
-            "#,
-                server_config.token
-            )).is_err()
-            {
+                "#,
+                    token
+                )).is_err()
+                {
                     error!("Websocket couldn't queue an initial message.")
-            }
+                }
 
-            WsClient {
-                ws: out,
-                timeout: None,
-                own_id: None,
-                token: server_config.token.clone(),
-                servername: server_config.servername.clone(),
-                mobile_number: mobile_number.clone(),
-            }
-        }) {
-            // Inform the user of failure
+                WsClient {
+                    ws: out,
+                    timeout: None,
+                    own_id: None,
+                    token: token.clone(),
+                    servername: servername.clone(),
+                    mobile_number: mobile_number.clone(),
+                }
+            }) {
+                // Inform the user of failure
                 error!("Failed to create WebSocket due to: {:?}", error);
+            }
+            Ok(())
+        })
+    };
+
+    // the websocket client can die, e.g., if the Internet connection fails or
+    // mattermost fails for some time
+    // Therefore, make sure to restart the handle if it fails
+    thread::spawn(move || loop {
+        let base_url = server_config.base_url.clone();
+        let token = server_config.token.clone();
+        let servername = server_config.servername.clone();
+        let mobile_number = mobile_number.clone();
+
+        match handle_server(base_url, token, servername, mobile_number).join() {
+            Ok(Err(err)) => warn!(
+                "Websocket connection to \"{}\" failed:\n{}",
+                server_config.servername, err
+            ),
+            Err(_) => warn!("Thread for \"{}\" paniced!", server_config.servername),
+            _ => {}
         }
-        Ok(())
     })
 }
 
