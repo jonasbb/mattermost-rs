@@ -102,6 +102,8 @@ fn run() -> Result<()> {
                     server_config,
                     config.signal_phone_number.clone(),
                 ));
+            } else {
+                error!("Invalid token for {}", server_config.servername);
             }
         } else {
             error!("Could not connect to server '{}'", server_config.servername);
