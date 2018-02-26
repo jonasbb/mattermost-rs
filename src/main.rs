@@ -185,6 +185,7 @@ fn spawn_server_handle_thread(
             Err(_) => warn!("Thread for \"{}\" paniced!", server_config.servername),
             _ => {}
         }
+        thread::sleep(Duration::from_secs(5));
     })
 }
 
