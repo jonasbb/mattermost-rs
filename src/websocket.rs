@@ -176,7 +176,8 @@ pub struct Broadcast {
 pub enum Status {
     Online,
     Away,
-    #[serde(rename = "dnd")] DoNotDisturb,
+    #[serde(rename = "dnd")]
+    DoNotDisturb,
     Offline,
 }
 
@@ -205,7 +206,7 @@ pub struct Post {
     #[serde(with = "::serialize::string_set")]
     pub hashtags: HashSet<String>,
     pub pending_post_id: String,
-    #[serde(skip_serializing_if="Vec::is_empty", default)]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub file_ids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub has_reactions: Option<bool>,
@@ -214,7 +215,8 @@ pub struct Post {
 #[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum PostType {
-    #[serde(rename = "")] UserMessage,
+    #[serde(rename = "")]
+    UserMessage,
     SystemEphemeral,
     SystemJoinChannel,
     SystemHeaderChange,

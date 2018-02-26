@@ -176,7 +176,10 @@ pub struct Channel {
 
 #[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ChannelType {
-    #[serde(rename = "O")] Open,
-    #[serde(rename = "P")] Private,
-    #[serde(rename = "D")] DirectMessage,
+    #[serde(rename = "O")]
+    Open,
+    #[serde(rename = "P")]
+    Private,
+    #[serde(rename = "D")]
+    DirectMessage,
 }
