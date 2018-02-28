@@ -1,4 +1,4 @@
-use super::react_to_message;
+use {react_to_message, ServerConfig};
 use ws::{CloseCode, Frame, Handshake, OpCode, Sender};
 use ws::util::{Timeout, Token};
 
@@ -16,8 +16,7 @@ pub struct WsClient {
     pub ws: Sender,
     pub timeout: Option<Timeout>,
     pub own_id: Option<String>,
-    pub token: String,
-    pub servername: String,
+    pub serverconfig: ServerConfig,
     pub mobile_number: String,
 }
 

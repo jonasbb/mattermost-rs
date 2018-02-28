@@ -42,7 +42,7 @@ struct Config {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-struct ServerConfig {
+pub struct ServerConfig {
     // #[serde(with = "url_serde")]
     // base_url: Url,
     base_url: String,
@@ -122,13 +122,11 @@ fn spawn_server_handle_thread(
     mobile_number: String,
 ) -> thread::JoinHandle<Result<()>> {
     fn handle_server(
-        base_url: String,
-        token: String,
-        servername: String,
+        serverconfig: ServerConfig,
         mobile_number: String,
     ) -> thread::JoinHandle<Result<()>> {
         thread::spawn(move || {
-            let mut url = Url::parse(&*base_url)?;
+            let mut url = Url::parse(&*serverconfig.base_url)?;
             url.set_scheme("wss")
                 .expect("Setting the scheme to wss must always work");
             let url = url.join("/api/v4/websocket")?;
@@ -146,7 +144,7 @@ fn spawn_server_handle_thread(
                         }}
                     }}
                 "#,
-                    token
+                    serverconfig.token
                 )).is_err()
                 {
                     error!("Websocket couldn't queue an initial message.")
@@ -156,9 +154,8 @@ fn spawn_server_handle_thread(
                     ws: out,
                     timeout: None,
                     own_id: None,
-                    token: token.clone(),
-                    servername: servername.clone(),
                     mobile_number: mobile_number.clone(),
+                    serverconfig: serverconfig.clone(),
                 }
             }) {
                 // Inform the user of failure
@@ -172,12 +169,10 @@ fn spawn_server_handle_thread(
     // mattermost fails for some time
     // Therefore, make sure to restart the handle if it fails
     thread::spawn(move || loop {
-        let base_url = server_config.base_url.clone();
-        let token = server_config.token.clone();
-        let servername = server_config.servername.clone();
+        let serverconfig = server_config.clone();
         let mobile_number = mobile_number.clone();
 
-        match handle_server(base_url, token, servername, mobile_number).join() {
+        match handle_server(serverconfig, mobile_number).join() {
             Ok(Err(err)) => warn!(
                 "Websocket connection to \"{}\" failed:\n{}",
                 server_config.servername, err
@@ -251,14 +246,14 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                                 "{server} {sender}:\n{message}\n@{time}",
                                 message = post.message,
                                 sender = sender_name,
-                                server = client.servername,
+                                server = client.serverconfig.servername,
                                 time = localtime,
                             ),
                             ChannelType::Open | ChannelType::Private => format!(
                                 "{server} {sender} in {channel}:\n{message}\n@{time}",
                                 message = post.message,
                                 sender = sender_name,
-                                server = client.servername,
+                                server = client.serverconfig.servername,
                                 channel = channel_display_name,
                                 time = localtime,
                             ),
