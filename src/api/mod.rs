@@ -4,6 +4,7 @@ use reqwest::{Client as WebClient, StatusCode};
 use reqwest::header::{Authorization, Bearer};
 use std::collections::HashSet;
 use url::Url;
+use websocket::Post;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Client {
@@ -92,6 +93,33 @@ impl Client {
             }))
             .send()
             .chain_err(|| "Failed to send webrequest")?;
+        debug!("get_channel_by_id response {}", res.status());
+
+        match res.status() {
+            // 400
+            StatusCode::BadRequest => Err(ErrorKind::InvalidOrMissingParameter.into()),
+            // 401
+            StatusCode::Unauthorized => Err(ErrorKind::MissingAccessToken.into()),
+            // 403
+            StatusCode::Forbidden => Err(ErrorKind::MissingPermissions.into()),
+            // 200
+            // StatusCode::Ok => Ok(res.json()?),
+            _ => Ok(res.json()?),
+        }
+    }
+
+    pub fn create_post(&self, post: CreatePostRequest) -> Result<Post> {
+        let client = WebClient::new();
+        let url = self.base_url.join("/api/v4/posts")?;
+        let mut res = client
+            .post(url)
+            .header(Authorization(Bearer {
+                token: self.token.clone(),
+            }))
+            .json(&post)
+            .send()
+            .chain_err(|| "Failed to send webrequest")?;
+        debug!("create_post response {}", res.status());
 
         match res.status() {
             // 400
@@ -182,4 +210,16 @@ pub enum ChannelType {
     Private,
     #[serde(rename = "D")]
     DirectMessage,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
+pub struct CreatePostRequest {
+    pub channel_id: String,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub root_id: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub file_ids: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub props: Option<String>,
 }
