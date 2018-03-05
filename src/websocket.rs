@@ -160,6 +160,18 @@ pub enum Events {
         #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
         team: Team,
     },
+    UserAdded {
+        team_id: String,
+        user_id: String,
+    },
+    UserRemoved {
+        remover_id: String,
+        user_id: String,
+    },
+    LeaveTeam {
+        team_id: String,
+        user_id: String,
+    },
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
@@ -223,6 +235,10 @@ pub enum PostType {
     SystemChannelDeleted,
     SystemPurposeChange,
     SystemDisplaynameChange,
+    SystemAddToChannel,
+    SystemRemoveFromChannel,
+    SystemJoinTeam,
+    SystemRemoveFromTeam,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -244,6 +260,10 @@ pub struct PostProps {
     new_displayname: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     old_displayname: Option<String>,
+    #[serde(rename = "addedUsername", skip_serializing_if = "Option::is_none")]
+    added_username: Option<String>,
+    #[serde(rename = "removedUsername", skip_serializing_if = "Option::is_none")]
+    removed_username: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
