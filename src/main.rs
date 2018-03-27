@@ -23,7 +23,7 @@ mod websocket_client;
 use chrono_tz::Europe::Berlin as TzBerlin;
 use error_chain::ChainedError;
 use mattermost_structs::Result;
-use mattermost_structs::api::{ChannelType, Client};
+use mattermost_structs::api::{ChannelType, Client, CreatePostRequest};
 use mattermost_structs::websocket::{Events, Message};
 use std::ffi::{OsStr, OsString};
 use std::fs::File;
@@ -206,19 +206,8 @@ fn spawn_server_watchdog(
 }
 
 fn react_to_message(client: &mut WsClient, message: &str) {
-    if let Ok(msg) = serde_json::from_str::<Message>(message) {
+    if let Ok(Message::Push(msg)) = serde_json::from_str::<Message>(message) {
         debug!("Received message:\n{:?}", msg);
-
-        // ignore broadcast events which cover us
-        if let Some(ref own_id) = client.own_id {
-            if let Some(ref omit_users) = msg.broadcast.omit_users {
-                if let Some(omit_me) = omit_users.get(own_id) {
-                    if *omit_me {
-                        return;
-                    }
-                }
-            }
-        }
 
         use Events::*;
         match msg.event {
@@ -234,6 +223,40 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                 mentions,
                 ..
             } => {
+                if client.own_id == Some(post.user_id) && post.message.starts_with("@me") {
+                    let mut client = Client::new(
+                        client.serverconfig.base_url.clone(),
+                        client.serverconfig.token.clone(),
+                    );
+                    if let Ok(client) = client {
+                        // if the message we receive has a root_id, then we are already in a thread, so further use that
+                        // otherwise use the post id
+                        let root_id = if !post.root_id.is_empty() {
+                            post.root_id.clone()
+                        } else {
+                            post.id.clone()
+                        };
+
+                        let _ = client.create_post(CreatePostRequest {
+                            channel_id: post.channel_id.clone(),
+                            message: "Hi!".to_string(),
+                            root_id: Some(root_id),
+                            ..CreatePostRequest::default()
+                        });
+                    }
+                }
+
+                // ignore broadcast events which cover us
+                if let Some(ref own_id) = client.own_id {
+                    if let Some(ref omit_users) = msg.broadcast.omit_users {
+                        if let Some(omit_me) = omit_users.get(own_id) {
+                            if *omit_me {
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 // only send push notification when we are mentioned
                 if let Some(mentions) = mentions {
                     if mentions.contains(client.own_id.as_ref().unwrap()) {

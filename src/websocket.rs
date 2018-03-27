@@ -5,71 +5,33 @@ use api::{Channel, ChannelType, User};
 use chrono::prelude::{DateTime, Utc};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize)]
-pub struct Message {
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Message {
+    Push(MessagePush),
+    Reply(MessageReply),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+// #[serde(untagged)]
+pub struct MessagePush {
+    #[serde(flatten)]
     pub event: Events,
     pub broadcast: Broadcast,
     pub seq: usize,
 }
 
-impl<'de> ::serde::de::Deserialize<'de> for Message {
-    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
-    where
-        D: ::serde::de::Deserializer<'de>,
-    {
-        use serde::de::{Error, Expected, Unexpected};
+#[derive(Debug, Serialize, Deserialize)]
+// #[serde(untagged)]
+pub struct MessageReply {
+    pub status: MessageStatus,
+    pub seq_reply: usize,
+}
 
-        struct HExpected;
-
-        impl Expected for HExpected {
-            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                formatter.write_str("struct `Message`")
-            }
-        }
-
-        #[derive(Default, Deserialize)]
-        struct Helper {
-            broadcast: Option<Broadcast>,
-            seq: Option<usize>,
-        }
-
-        let mut helper = Helper::default();
-
-        use serde_json::Value;
-        let mut value: Value = Value::deserialize(deserializer)?;
-        if let Some(ref mut map) = value.as_object_mut() {
-            if let Some(v) = map.remove("broadcast") {
-                helper.broadcast = ::serde_json::from_value(v).ok();
-            } else {
-                // TODO make better error message here
-                warn!("No broadcast field in message");
-                return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
-            }
-            if let Some(v) = map.remove("seq") {
-                helper.seq = ::serde_json::from_value(v).ok();
-            } else {
-                // TODO make better error message here
-                warn!("No seq field in message");
-                return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
-            }
-        } else {
-            // TODO make better error message here
-            return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
-        }
-
-        let event: Events = ::serde_json::from_value(value).map_err(Error::custom)?;
-
-        if helper.broadcast.is_none() || helper.seq.is_none() {
-            // TODO make better error message here
-            return Err(Error::invalid_value(Unexpected::StructVariant, &HExpected));
-        }
-
-        Ok(Message {
-            event: event,
-            broadcast: helper.broadcast.unwrap(),
-            seq: helper.seq.unwrap(),
-        })
-    }
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE", deny_unknown_fields)]
+pub enum MessageStatus {
+    Ok,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
@@ -208,6 +170,7 @@ pub struct Post {
     pub is_pinned: bool,
     pub user_id: String,
     pub channel_id: String,
+    // TODO empty equals not set
     pub root_id: String,
     pub parent_id: String,
     pub original_id: String,
