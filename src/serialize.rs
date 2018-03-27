@@ -50,7 +50,7 @@ pub mod string_set {
         let mut bytes = Vec::new();
         for elem in hs {
             serde_json::to_writer(&mut bytes, &elem).map_err(ser::Error::custom)?;
-            bytes.push(' ' as u8);
+            bytes.push(b' ');
         }
         // We can convert this Vec<u8> into string without checking for UTF-8
         // This is exactly what serde_json also does

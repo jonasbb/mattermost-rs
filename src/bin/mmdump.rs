@@ -82,7 +82,6 @@ fn run() -> Result<()> {
             // there is exactly one server
             None => 0,
         };
-        args.server.unwrap_or(1) - 1;
 
         if idx > config.servers.len() {
             bail!(

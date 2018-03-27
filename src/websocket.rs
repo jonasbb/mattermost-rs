@@ -5,6 +5,7 @@ use api::{Channel, ChannelType, User};
 use chrono::prelude::{DateTime, Utc};
 use std::collections::HashMap;
 
+#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Message {
@@ -34,6 +35,7 @@ pub enum MessageStatus {
     Ok,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(tag = "event", content = "data", deny_unknown_fields, rename_all = "snake_case")]
 pub enum Events {

@@ -108,7 +108,7 @@ impl Client {
         }
     }
 
-    pub fn create_post(&self, post: CreatePostRequest) -> Result<Post> {
+    pub fn create_post(&self, post: &CreatePostRequest) -> Result<Post> {
         let client = WebClient::new();
         let url = self.base_url.join("/api/v4/posts")?;
         let mut res = client

@@ -237,7 +237,7 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                             post.id.clone()
                         };
 
-                        let _ = client.create_post(CreatePostRequest {
+                        let _ = client.create_post(&CreatePostRequest {
                             channel_id: post.channel_id.clone(),
                             message: "Hi!".to_string(),
                             root_id: Some(root_id),
