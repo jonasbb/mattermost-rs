@@ -1,5 +1,3 @@
-#![feature(catch_expr)]
-
 extern crate mattermost_structs;
 extern crate serde_json;
 
@@ -16,13 +14,11 @@ fn main() {
 
     for value in stream {
         let value = value.unwrap();
-        do catch {
-            let msg: Result<Message, _> = serde_json::from_value(value.clone());
-            if let Err(v) = msg {
-                println!("{:?}", v);
-                println!("occured while processing {:?}", value);
-                println!("\n\n");
-            }
+        let msg: Result<Message, _> = serde_json::from_value(value.clone());
+        if let Err(v) = msg {
+            println!("{:?}", v);
+            println!("occured while processing {:?}", value);
+            println!("\n\n");
         }
     }
 }
