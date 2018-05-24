@@ -232,6 +232,16 @@ pub struct PostProps {
     added_username: Option<String>,
     #[serde(rename = "removedUsername", skip_serializing_if = "Option::is_none")]
     removed_username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    add_channel_member: Option<AddChannelMember>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[serde(deny_unknown_fields)]
+pub struct AddChannelMember {
+    pub post_id: String,
+    pub user_ids: Vec<String>,
+    pub usernames: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
