@@ -47,7 +47,7 @@ pub enum Events {
         user_id: String,
     },
     EphemeralMessage {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         post: Post,
     },
     Typing {
@@ -58,14 +58,14 @@ pub enum Events {
         channel_display_name: String,
         channel_name: String,
         channel_type: ChannelType,
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         post: Post,
         sender_name: String,
         team_id: String,
         #[serde(
             default,
             skip_serializing_if = "Option::is_none",
-            deserialize_with = "::serialize::deserialize_embedded_json"
+            with = "::serde_with::json::embedded_json"
         )]
         mentions: Option<Vec<String>>,
         // TODO this might also be a boolean
@@ -75,11 +75,11 @@ pub enum Events {
         other_file: Option<String>,
     },
     ReactionAdded {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         reaction: Reaction,
     },
     PostEdited {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         post: Post,
     },
     ChannelCreated {
@@ -93,7 +93,7 @@ pub enum Events {
         user: User,
     },
     PostDeleted {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         post: Post,
     },
     ChannelViewed {
@@ -103,18 +103,18 @@ pub enum Events {
         preferences: String,
     },
     ChannelUpdated {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         channel: Channel,
     },
     ReactionRemoved {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         reaction: Reaction,
     },
     NewUser {
         user_id: String,
     },
     EmojiAdded {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         emoji: Emoji,
     },
     ChannelDeleted {
@@ -124,7 +124,7 @@ pub enum Events {
         teammate_id: String,
     },
     UpdateTeam {
-        #[serde(deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(with = "::serde_with::json::embedded_json")]
         team: Team,
     },
     UserAdded {

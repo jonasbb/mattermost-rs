@@ -1,36 +1,3 @@
-pub fn deserialize_embedded_json<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    D: ::serde::de::Deserializer<'de>,
-    T: ::serde::de::DeserializeOwned,
-{
-    use serde::de::{DeserializeOwned, Error, Visitor};
-    use serde_json;
-    use std::fmt;
-    use std::marker::PhantomData;
-    #[derive(Default)]
-    struct Helper<S: DeserializeOwned>(PhantomData<S>);
-
-    impl<'de, S> Visitor<'de> for Helper<S>
-    where
-        S: DeserializeOwned,
-    {
-        type Value = S;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "valid json object")
-        }
-
-        fn visit_str<E>(self, value: &str) -> Result<S, E>
-        where
-            E: Error,
-        {
-            serde_json::from_str(value).map_err(Error::custom)
-        }
-    }
-
-    deserializer.deserialize_str(Helper(PhantomData))
-}
-
 pub mod string_set {
     use serde::{de, ser};
     use serde_json;
