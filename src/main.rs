@@ -22,9 +22,9 @@ mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
 use error_chain::ChainedError;
-use mattermost_structs::Result;
 use mattermost_structs::api::{ChannelType, Client, CreatePostRequest};
 use mattermost_structs::websocket::{Events, Message};
+use mattermost_structs::Result;
 use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -55,8 +55,9 @@ pub struct ServerConfig {
 #[structopt(author = "", raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 struct CliArgs {
     /// Sets a custom config file
-    #[structopt(short = "c", long = "config", parse(from_os_str),
-                raw(validator_os = "path_is_file"))]
+    #[structopt(
+        short = "c", long = "config", parse(from_os_str), raw(validator_os = "path_is_file")
+    )]
     config: PathBuf,
 }
 
@@ -134,8 +135,9 @@ fn spawn_server_handle_thread(
             // Connect to the url and call the closure
             if let Err(error) = connect(url.as_str(), move |out| {
                 // Queue a message to be sent when the WebSocket is open
-                if out.send(format!(
-                    r#"
+                if out
+                    .send(format!(
+                        r#"
                     {{
                         "seq": 1,
                         "action": "authentication_challenge",
@@ -144,8 +146,9 @@ fn spawn_server_handle_thread(
                         }}
                     }}
                 "#,
-                    serverconfig.token
-                )).is_err()
+                        serverconfig.token
+                    ))
+                    .is_err()
                 {
                     error!("Websocket couldn't queue an initial message.")
                 }

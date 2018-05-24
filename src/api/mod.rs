@@ -1,7 +1,7 @@
 use chrono::prelude::{DateTime, Utc};
 use error::{ErrorKind, Result, ResultExt};
-use reqwest::{Client as WebClient, StatusCode};
 use reqwest::header::{Authorization, Bearer};
+use reqwest::{Client as WebClient, StatusCode};
 use std::collections::HashSet;
 use url::Url;
 use websocket::Post;
@@ -160,11 +160,17 @@ pub struct User {
     pub locale: String,
     // pub notify_props: {},
     // pub props: {},
-    #[serde(skip_serializing_if = "Option::is_none",
-            with = "::serialize::option_ts_milliseconds", default)]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "::serialize::option_ts_milliseconds",
+        default
+    )]
     pub last_password_update: Option<DateTime<Utc>>,
-    #[serde(skip_serializing_if = "Option::is_none",
-            with = "::serialize::option_ts_milliseconds", default)]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "::serialize::option_ts_milliseconds",
+        default
+    )]
     pub last_picture_update: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed_attempts: Option<u64>,

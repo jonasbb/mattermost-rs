@@ -62,8 +62,11 @@ pub enum Events {
         post: Post,
         sender_name: String,
         team_id: String,
-        #[serde(default, skip_serializing_if = "Option::is_none",
-                deserialize_with = "::serialize::deserialize_embedded_json")]
+        #[serde(
+            default,
+            skip_serializing_if = "Option::is_none",
+            deserialize_with = "::serialize::deserialize_embedded_json"
+        )]
         mentions: Option<Vec<String>>,
         // TODO this might also be a boolean
         image: Option<String>,

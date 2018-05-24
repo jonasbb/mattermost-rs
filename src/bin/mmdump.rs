@@ -38,8 +38,9 @@ struct ServerConfig {
 #[structopt(author = "", raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 struct CliArgs {
     /// Sets a custom config file
-    #[structopt(short = "c", long = "config", parse(from_os_str),
-                raw(validator_os = "path_is_file"))]
+    #[structopt(
+        short = "c", long = "config", parse(from_os_str), raw(validator_os = "path_is_file")
+    )]
     config: PathBuf,
 
     /// Select server if multiple server are present in the configuration. Start with 1
@@ -103,8 +104,9 @@ fn run() -> Result<()> {
     // Connect to the url and call the closure
     if let Err(error) = connect(url.as_str(), |out| {
         // Queue a message to be sent when the WebSocket is open
-        if out.send(&*format!(
-            r#"
+        if out
+            .send(&*format!(
+                r#"
             {{
                 "seq": 1,
                 "action": "authentication_challenge",
@@ -113,8 +115,9 @@ fn run() -> Result<()> {
                 }}
             }}
         "#,
-            server_config.token
-        )).is_err()
+                server_config.token
+            ))
+            .is_err()
         {
             error!("Websocket couldn't queue an initial message.")
         }
