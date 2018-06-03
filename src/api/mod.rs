@@ -178,6 +178,17 @@ pub struct User {
     pub failed_attempts: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mfa_active: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timezone: Option<Timezone>,
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Timezone {
+    automatic_timezone: String,
+    manual_timezone: String,
+    #[serde(with = "::serde_with::rust::display_fromstr")]
+    use_automatic_timezone: bool,
 }
 
 #[derive(Debug, Eq, Hash, PartialEq, Copy, Clone, Ord, PartialOrd)]
