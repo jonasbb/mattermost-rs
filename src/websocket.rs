@@ -47,7 +47,7 @@ pub enum Events {
         user_id: String,
     },
     EphemeralMessage {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         post: Post,
     },
     Typing {
@@ -58,14 +58,14 @@ pub enum Events {
         channel_display_name: String,
         channel_name: String,
         channel_type: ChannelType,
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         post: Post,
         sender_name: String,
         team_id: String,
         #[serde(
             default,
             skip_serializing_if = "Option::is_none",
-            with = "::serde_with::json::embedded_json"
+            with = "::serde_with::json::nested"
         )]
         mentions: Option<Vec<String>>,
         // TODO this might also be a boolean
@@ -75,11 +75,11 @@ pub enum Events {
         other_file: Option<String>,
     },
     ReactionAdded {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         reaction: Reaction,
     },
     PostEdited {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         post: Post,
     },
     ChannelCreated {
@@ -93,7 +93,7 @@ pub enum Events {
         user: User,
     },
     PostDeleted {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         post: Post,
     },
     ChannelViewed {
@@ -103,18 +103,18 @@ pub enum Events {
         preferences: String,
     },
     ChannelUpdated {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         channel: Channel,
     },
     ReactionRemoved {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         reaction: Reaction,
     },
     NewUser {
         user_id: String,
     },
     EmojiAdded {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         emoji: Emoji,
     },
     ChannelDeleted {
@@ -124,7 +124,7 @@ pub enum Events {
         teammate_id: String,
     },
     UpdateTeam {
-        #[serde(with = "::serde_with::json::embedded_json")]
+        #[serde(with = "::serde_with::json::nested")]
         team: Team,
     },
     UserAdded {
@@ -183,7 +183,7 @@ pub struct Post {
     #[serde(rename = "type")]
     pub type_: PostType,
     pub props: PostProps,
-    #[serde(with = "::serialize::string_set")]
+    #[serde(with = "::serde_with::rust::StringWithSeparator::<::serde_with::SpaceSeparator>")]
     pub hashtags: HashSet<String>,
     pub pending_post_id: String,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]

@@ -3,6 +3,8 @@ use error::{ErrorKind, Result, ResultExt};
 use reqwest::header::{Authorization, Bearer};
 use reqwest::{Client as WebClient, StatusCode};
 use std::collections::HashSet;
+use std::fmt;
+use std::str::FromStr;
 use url::Url;
 use websocket::Post;
 
@@ -154,7 +156,7 @@ pub struct User {
     pub auth_data: String,
     pub auth_service: String,
     pub position: String,
-    #[serde(with = "::serialize::string_set")]
+    #[serde(with = "::serde_with::rust::StringWithSeparator::<::serde_with::SpaceSeparator>")]
     pub roles: HashSet<UserRole>,
     // pub roles: UserRole,
     pub locale: String,
@@ -178,11 +180,34 @@ pub struct User {
     pub mfa_active: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Copy, Clone, Ord, PartialOrd)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Eq, Hash, PartialEq, Copy, Clone, Ord, PartialOrd)]
 pub enum UserRole {
     SystemUser,
     SystemAdmin,
+}
+
+impl fmt::Display for UserRole {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            UserRole::SystemUser => write!(f, "system_user"),
+            UserRole::SystemAdmin => write!(f, "system_admin"),
+        }
+    }
+}
+
+impl FromStr for UserRole {
+    type Err = String;
+
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+        match s {
+            "system_user" => Ok(UserRole::SystemUser),
+            "system_admin" => Ok(UserRole::SystemAdmin),
+            _ => Err(format!(
+                "Unexpected value '{}', expected one of 'system_user', 'system_admin'",
+                s
+            )),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Ord, PartialOrd, Eq, PartialEq)]
