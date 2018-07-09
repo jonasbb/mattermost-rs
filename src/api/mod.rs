@@ -1,10 +1,10 @@
 use chrono::prelude::{DateTime, Utc};
 use error::{ErrorKind, Result, ResultExt};
-use reqwest::header::{Authorization, Bearer};
-use reqwest::{Client as WebClient, StatusCode};
-use std::collections::HashSet;
-use std::fmt;
-use std::str::FromStr;
+use reqwest::{
+    header::{Authorization, Bearer},
+    Client as WebClient, StatusCode,
+};
+use std::{collections::HashSet, fmt, str::FromStr};
 use url::Url;
 use websocket::Post;
 

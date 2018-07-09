@@ -13,9 +13,11 @@ extern crate url;
 extern crate ws;
 
 use mattermost_structs::Result;
-use std::ffi::{OsStr, OsString};
-use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::{OsStr, OsString},
+    fs::File,
+    path::{Path, PathBuf},
+};
 use structopt::StructOpt;
 use url::Url;
 use ws::connect;
@@ -35,11 +37,17 @@ struct ServerConfig {
 
 /// Mattermost to Signal Bridge
 #[derive(Debug, StructOpt)]
-#[structopt(author = "", raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
+#[structopt(
+    author = "",
+    raw(setting = "structopt::clap::AppSettings::ColoredHelp")
+)]
 struct CliArgs {
     /// Sets a custom config file
     #[structopt(
-        short = "c", long = "config", parse(from_os_str), raw(validator_os = "path_is_file")
+        short = "c",
+        long = "config",
+        parse(from_os_str),
+        raw(validator_os = "path_is_file")
     )]
     config: PathBuf,
 

@@ -1,9 +1,7 @@
-use serialize;
-use std::collections::{BTreeMap, HashSet};
-
 use api::{Channel, ChannelType, User};
 use chrono::prelude::{DateTime, Utc};
-use std::collections::HashMap;
+use serialize;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 #[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,7 +35,12 @@ pub enum MessageStatus {
 
 #[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
-#[serde(tag = "event", content = "data", deny_unknown_fields, rename_all = "snake_case")]
+#[serde(
+    tag = "event",
+    content = "data",
+    deny_unknown_fields,
+    rename_all = "snake_case"
+)]
 pub enum Events {
     Hello {
         server_version: String,
@@ -231,9 +234,15 @@ pub struct PostProps {
     new_displayname: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     old_displayname: Option<String>,
-    #[serde(rename = "addedUsername", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "addedUsername",
+        skip_serializing_if = "Option::is_none"
+    )]
     added_username: Option<String>,
-    #[serde(rename = "removedUsername", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "removedUsername",
+        skip_serializing_if = "Option::is_none"
+    )]
     removed_username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     add_channel_member: Option<AddChannelMember>,

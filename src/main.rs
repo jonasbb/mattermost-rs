@@ -22,14 +22,18 @@ mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
 use error_chain::ChainedError;
-use mattermost_structs::api::{ChannelType, Client, CreatePostRequest};
-use mattermost_structs::websocket::{Events, Message};
-use mattermost_structs::Result;
-use std::ffi::{OsStr, OsString};
-use std::fs::File;
-use std::path::{Path, PathBuf};
-use std::thread;
-use std::time::Duration;
+use mattermost_structs::{
+    api::{ChannelType, Client, CreatePostRequest},
+    websocket::{Events, Message},
+    Result,
+};
+use std::{
+    ffi::{OsStr, OsString},
+    fs::File,
+    path::{Path, PathBuf},
+    thread,
+    time::Duration,
+};
 use structopt::StructOpt;
 use url::Url;
 use websocket_client::WsClient;
@@ -52,11 +56,17 @@ pub struct ServerConfig {
 
 /// Mattermost to Signal Bridge
 #[derive(Debug, StructOpt)]
-#[structopt(author = "", raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
+#[structopt(
+    author = "",
+    raw(setting = "structopt::clap::AppSettings::ColoredHelp")
+)]
 struct CliArgs {
     /// Sets a custom config file
     #[structopt(
-        short = "c", long = "config", parse(from_os_str), raw(validator_os = "path_is_file")
+        short = "c",
+        long = "config",
+        parse(from_os_str),
+        raw(validator_os = "path_is_file")
     )]
     config: PathBuf,
 }

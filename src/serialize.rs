@@ -1,9 +1,10 @@
 pub mod ts_seconds {
+    use chrono::{
+        offset::{LocalResult, TimeZone},
+        DateTime, FixedOffset, Utc,
+    };
     use serde::{de, ser};
     use std::fmt;
-
-    use chrono::offset::{LocalResult, TimeZone};
-    use chrono::{DateTime, FixedOffset, Utc};
 
     /// Deserialize a `DateTime` from a milliseconds timestamp
     ///
@@ -135,11 +136,12 @@ pub mod ts_seconds {
 
 pub mod option_ts_milliseconds {
     //FIXME comments
+    use chrono::{
+        offset::{LocalResult, TimeZone},
+        DateTime, FixedOffset, Utc,
+    };
     use serde::{de, ser};
     use std::fmt;
-
-    use chrono::offset::{LocalResult, TimeZone};
-    use chrono::{DateTime, FixedOffset, Utc};
 
     /// Deserialize a `DateTime` from a milliseconds timestamp
     ///
@@ -173,9 +175,10 @@ pub mod option_ts_milliseconds {
     where
         D: de::Deserializer<'de>,
     {
-        Ok(Some(d
-            .deserialize_i64(MillisecondsTimestampVisitor)
-            .map(|dt| dt.with_timezone(&Utc))?))
+        Ok(Some(
+            d.deserialize_i64(MillisecondsTimestampVisitor)
+                .map(|dt| dt.with_timezone(&Utc))?,
+        ))
     }
 
     /// Serialize a UTC datetime into an integer number of milliseconds since the epoch

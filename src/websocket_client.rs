@@ -1,6 +1,9 @@
-use ws::util::{Timeout, Token};
-use ws::{CloseCode, Frame, Handshake, OpCode, Sender};
-use {react_to_message, ServerConfig};
+use react_to_message;
+use ws::{
+    util::{Timeout, Token},
+    CloseCode, Frame, Handshake, OpCode, Sender,
+};
+use ServerConfig;
 
 const PING: Token = Token(1);
 const PING_TIMEOUT: u64 = 10_000;
