@@ -1,5 +1,5 @@
 use serialize;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 use api::{Channel, ChannelType, User};
 use chrono::prelude::{DateTime, Utc};
@@ -138,6 +138,9 @@ pub enum Events {
     LeaveTeam {
         team_id: String,
         user_id: String,
+    },
+    ConfigChanged {
+        config: Config,
     },
 }
 
@@ -289,3 +292,6 @@ pub struct Team {
     pub invite_id: String,
     pub allow_open_invite: bool,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Config(pub BTreeMap<String, String>);
