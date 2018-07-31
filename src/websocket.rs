@@ -246,6 +246,10 @@ pub struct PostProps {
     removed_username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     add_channel_member: Option<AddChannelMember>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    from_webhook: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    override_username: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
