@@ -250,6 +250,16 @@ pub struct PostProps {
     from_webhook: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     override_username: Option<String>,
+    #[serde(
+        rename = "addedUserId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    added_user_id: Option<String>,
+    #[serde(
+        rename = "userId",
+        skip_serializing_if = "Option::is_none"
+    )]
+    user_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
