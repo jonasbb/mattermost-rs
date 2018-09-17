@@ -1,7 +1,7 @@
 extern crate mattermost_structs;
 extern crate serde_json;
 
-use mattermost_structs::websocket::Message;
+use mattermost_structs::websocket::{Message, MessagePush};
 use serde_json::{Deserializer, Value};
 use std::io::stdin;
 
@@ -17,6 +17,10 @@ fn main() {
         let msg: Result<Message, _> = serde_json::from_value(value.clone());
         if let Err(v) = msg {
             println!("{:?}", v);
+            let err: Result<MessagePush, _> = serde_json::from_value(value.clone());
+            if let Err(v) = err {
+                println!("{:?}", v);
+            }
             println!("occured while processing {:?}", value);
             println!("\n\n");
         }
