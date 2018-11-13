@@ -1,6 +1,8 @@
 use lazy_static::lazy_static;
 use log::debug;
+use mattermost_structs::websocket::Status;
 use react_to_message;
+use std::sync::{Arc, Mutex};
 use ws::{
     util::{Timeout, Token},
     CloseCode, Frame, Handshake, OpCode, Sender,
@@ -23,6 +25,7 @@ pub struct WsClient {
     pub own_id: Option<String>,
     pub serverconfig: ServerConfig,
     pub mobile_number: String,
+    pub serverstate: Arc<Mutex<Status>>,
 }
 
 use ws::{Error, ErrorKind, Result};

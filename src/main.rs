@@ -20,7 +20,7 @@ use error_chain::{quick_main, ChainedError};
 use log::{debug, error, warn};
 use mattermost_structs::{
     api::{ChannelType, Client, CreatePostRequest},
-    websocket::{Events, Message},
+    websocket::{Events, Message, Status},
     Result,
 };
 use serde_derive::{Deserialize, Serialize};
@@ -28,6 +28,7 @@ use std::{
     ffi::{OsStr, OsString},
     fs::File,
     path::{Path, PathBuf},
+    sync::{Arc, Mutex},
     thread,
     time::Duration,
 };
@@ -132,6 +133,7 @@ fn spawn_server_handle_thread(
     fn handle_server(
         serverconfig: ServerConfig,
         mobile_number: String,
+        serverstate: Arc<Mutex<Status>>,
     ) -> thread::JoinHandle<Result<()>> {
         thread::spawn(move || {
             let mut url = Url::parse(&*serverconfig.base_url)?;
@@ -166,6 +168,7 @@ fn spawn_server_handle_thread(
                     own_id: None,
                     mobile_number: mobile_number.clone(),
                     serverconfig: serverconfig.clone(),
+                    serverstate: serverstate.clone(),
                 }
             }) {
                 // Inform the user of failure
@@ -175,14 +178,16 @@ fn spawn_server_handle_thread(
         })
     };
 
+    let serverstate = Arc::new(Mutex::new(Status::Online));
     // the websocket client can die, e.g., if the Internet connection fails or
     // mattermost fails for some time
     // Therefore, make sure to restart the handle if it fails
     thread::spawn(move || loop {
+        let serverstate = serverstate.clone();
         let serverconfig = server_config.clone();
         let mobile_number = mobile_number.clone();
 
-        match handle_server(serverconfig, mobile_number).join() {
+        match handle_server(serverconfig, mobile_number, serverstate).join() {
             Ok(Err(err)) => warn!(
                 "Websocket connection to \"{}\" failed:\n{}",
                 server_config.servername, err
@@ -225,6 +230,12 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                 client.own_id = Some(msg.broadcast.user_id);
             }
 
+            // Track the servers/users status to not send any notifications while in Do Not Disturb mode
+            StatusChange { status, .. } => {
+                let mut serverstate = client.serverstate.lock().unwrap();
+                *serverstate = status;
+            }
+
             Posted {
                 channel_display_name,
                 sender_name,
@@ -233,6 +244,7 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                 mentions,
                 ..
             } => {
+                // React to some messages
                 if client.own_id == Some(post.user_id) && post.message.starts_with("@me") {
                     let mut client = Client::new(
                         client.serverconfig.base_url.clone(),
@@ -268,11 +280,12 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                 }
 
                 // only send push notification when we are mentioned
+                // Also check that the status is anything but do not disturb
                 if let Some(mentions) = mentions {
-                    if mentions.contains(client.own_id.as_ref().unwrap()) {
-                        // if true {
-                        //     if true {
-                        use std::thread;
+                    let status = client.serverstate.lock().unwrap();
+                    if *status != Status::DoNotDisturb
+                        && mentions.contains(client.own_id.as_ref().unwrap())
+                    {
                         let localtime = post.create_at.with_timezone(&TzBerlin).format("%H:%M:%S");
                         let testmessage = match channel_type {
                             ChannelType::DirectMessage | ChannelType::Group => format!(
