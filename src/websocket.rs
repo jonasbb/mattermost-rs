@@ -122,6 +122,8 @@ pub enum Events {
     },
     ChannelDeleted {
         channel_id: String,
+        #[serde(with = "serialize::option_ts_milliseconds", default)]
+        delete_at: Option<DateTime<Utc>>,
     },
     DirectAdded {
         teammate_id: String,
@@ -144,6 +146,14 @@ pub enum Events {
     },
     ConfigChanged {
         config: Config,
+    },
+    GroupAdded {
+        #[serde(with = "::serde_with::json::nested")]
+        teammate_ids: Vec<String>,
+    },
+    DeleteTeam {
+        #[serde(with = "::serde_with::json::nested")]
+        team: Team,
     },
 }
 
@@ -234,15 +244,9 @@ pub struct PostProps {
     new_displayname: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     old_displayname: Option<String>,
-    #[serde(
-        rename = "addedUsername",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "addedUsername", skip_serializing_if = "Option::is_none")]
     added_username: Option<String>,
-    #[serde(
-        rename = "removedUsername",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "removedUsername", skip_serializing_if = "Option::is_none")]
     removed_username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     add_channel_member: Option<AddChannelMember>,
@@ -250,15 +254,9 @@ pub struct PostProps {
     from_webhook: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     override_username: Option<String>,
-    #[serde(
-        rename = "addedUserId",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "addedUserId", skip_serializing_if = "Option::is_none")]
     added_user_id: Option<String>,
-    #[serde(
-        rename = "userId",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
     user_id: Option<String>,
 }
 
@@ -314,6 +312,8 @@ pub struct Team {
     pub allowed_domains: String,
     pub invite_id: String,
     pub allow_open_invite: bool,
+    #[serde(default)]
+    pub scheme_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd)]

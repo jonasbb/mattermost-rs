@@ -275,7 +275,7 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                         use std::thread;
                         let localtime = post.create_at.with_timezone(&TzBerlin).format("%H:%M:%S");
                         let testmessage = match channel_type {
-                            ChannelType::DirectMessage => format!(
+                            ChannelType::DirectMessage | ChannelType::Group => format!(
                                 "{server} {sender}:\n{message}\n@{time}",
                                 message = post.message,
                                 sender = sender_name,
@@ -290,6 +290,11 @@ fn react_to_message(client: &mut WsClient, message: &str) {
                                 channel = channel_display_name,
                                 time = localtime,
                             ),
+                            ChannelType::Internal => {
+                                // Ignore this type.
+                                // I don't know what exactly this type even is
+                                return;
+                            }
                         };
                         let mobile_number = client.mobile_number.clone();
                         thread::spawn(move || {

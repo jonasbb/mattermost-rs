@@ -241,6 +241,10 @@ pub enum ChannelType {
     Private,
     #[serde(rename = "D")]
     DirectMessage,
+    #[serde(rename = "G")]
+    Group,
+    #[serde(rename = "I")]
+    Internal,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
