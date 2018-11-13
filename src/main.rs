@@ -1,19 +1,14 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate env_logger;
-#[macro_use]
 extern crate error_chain;
-#[macro_use]
 extern crate lazy_static;
-#[macro_use]
 extern crate log;
 extern crate mattermost_structs;
 extern crate openssl_probe;
-#[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_yaml;
-#[macro_use]
 extern crate structopt;
 extern crate url;
 extern crate ws;
@@ -21,12 +16,14 @@ extern crate ws;
 mod websocket_client;
 
 use chrono_tz::Europe::Berlin as TzBerlin;
-use error_chain::ChainedError;
+use error_chain::{quick_main, ChainedError};
+use log::{debug, error, warn};
 use mattermost_structs::{
     api::{ChannelType, Client, CreatePostRequest},
     websocket::{Events, Message},
     Result,
 };
+use serde_derive::{Deserialize, Serialize};
 use std::{
     ffi::{OsStr, OsString},
     fs::File,

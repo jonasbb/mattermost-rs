@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use log::debug;
 use react_to_message;
 use ws::{
     util::{Timeout, Token},
