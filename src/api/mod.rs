@@ -1,9 +1,6 @@
 use chrono::prelude::{DateTime, Utc};
 use error::{ErrorKind, Result, ResultExt};
-use reqwest::{
-    header::{Authorization, Bearer},
-    Client as WebClient, StatusCode,
-};
+use reqwest::{Client as WebClient, StatusCode};
 use std::{collections::HashSet, fmt, str::FromStr};
 use url::Url;
 use websocket::Post;
@@ -38,19 +35,17 @@ impl Client {
             .append_pair("per_page", &per_page.to_string());
         let mut res = client
             .get(url)
-            .header(Authorization(Bearer {
-                token: self.token.clone(),
-            }))
+            .header("authorization", format!("bearer {}", self.token))
             .send()
             .chain_err(|| "Failed to send webrequest")?;
 
         match res.status() {
             // 400
-            StatusCode::BadRequest => Err(ErrorKind::InvalidOrMissingParameter.into()),
+            StatusCode::BAD_REQUEST => Err(ErrorKind::InvalidOrMissingParameter.into()),
             // 401
-            StatusCode::Unauthorized => Err(ErrorKind::MissingAccessToken.into()),
+            StatusCode::UNAUTHORIZED => Err(ErrorKind::MissingAccessToken.into()),
             // 403
-            StatusCode::Forbidden => Err(ErrorKind::MissingPermissions.into()),
+            StatusCode::FORBIDDEN => Err(ErrorKind::MissingPermissions.into()),
             // 200
             // StatusCode::Ok => Ok(res.json()?),
             _ => Ok(res.json()?),
@@ -62,20 +57,18 @@ impl Client {
         let url = self.base_url.join("/api/v4/users/ids")?;
         let mut res = client
             .post(url)
-            .header(Authorization(Bearer {
-                token: self.token.clone(),
-            }))
+            .header("authorization", format!("bearer {}", self.token))
             .json(&ids)
             .send()
             .chain_err(|| "Failed to send webrequest")?;
 
         match res.status() {
             // 400
-            StatusCode::BadRequest => Err(ErrorKind::InvalidOrMissingParameter.into()),
+            StatusCode::BAD_REQUEST => Err(ErrorKind::InvalidOrMissingParameter.into()),
             // 401
-            StatusCode::Unauthorized => Err(ErrorKind::MissingAccessToken.into()),
+            StatusCode::UNAUTHORIZED => Err(ErrorKind::MissingAccessToken.into()),
             // 403
-            StatusCode::Forbidden => Err(ErrorKind::MissingPermissions.into()),
+            StatusCode::FORBIDDEN => Err(ErrorKind::MissingPermissions.into()),
             // 200
             // StatusCode::Ok => Ok(res.json()?),
             _ => Ok(res.json()?),
@@ -90,20 +83,18 @@ impl Client {
         let url = self.base_url.join("/api/v4/channels/")?.join(id.as_ref())?;
         let mut res = client
             .get(url)
-            .header(Authorization(Bearer {
-                token: self.token.clone(),
-            }))
+            .header("authorization", format!("bearer {}", self.token))
             .send()
             .chain_err(|| "Failed to send webrequest")?;
         debug!("get_channel_by_id response {}", res.status());
 
         match res.status() {
             // 400
-            StatusCode::BadRequest => Err(ErrorKind::InvalidOrMissingParameter.into()),
+            StatusCode::BAD_REQUEST => Err(ErrorKind::InvalidOrMissingParameter.into()),
             // 401
-            StatusCode::Unauthorized => Err(ErrorKind::MissingAccessToken.into()),
+            StatusCode::UNAUTHORIZED => Err(ErrorKind::MissingAccessToken.into()),
             // 403
-            StatusCode::Forbidden => Err(ErrorKind::MissingPermissions.into()),
+            StatusCode::FORBIDDEN => Err(ErrorKind::MissingPermissions.into()),
             // 200
             // StatusCode::Ok => Ok(res.json()?),
             _ => Ok(res.json()?),
@@ -115,9 +106,7 @@ impl Client {
         let url = self.base_url.join("/api/v4/posts")?;
         let mut res = client
             .post(url)
-            .header(Authorization(Bearer {
-                token: self.token.clone(),
-            }))
+            .header("authorization", format!("bearer {}", self.token))
             .json(&post)
             .send()
             .chain_err(|| "Failed to send webrequest")?;
@@ -125,11 +114,11 @@ impl Client {
 
         match res.status() {
             // 400
-            StatusCode::BadRequest => Err(ErrorKind::InvalidOrMissingParameter.into()),
+            StatusCode::BAD_REQUEST => Err(ErrorKind::InvalidOrMissingParameter.into()),
             // 401
-            StatusCode::Unauthorized => Err(ErrorKind::MissingAccessToken.into()),
+            StatusCode::UNAUTHORIZED => Err(ErrorKind::MissingAccessToken.into()),
             // 403
-            StatusCode::Forbidden => Err(ErrorKind::MissingPermissions.into()),
+            StatusCode::FORBIDDEN => Err(ErrorKind::MissingPermissions.into()),
             // 200
             // StatusCode::Ok => Ok(res.json()?),
             _ => Ok(res.json()?),
