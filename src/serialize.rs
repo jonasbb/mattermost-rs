@@ -38,10 +38,9 @@ pub mod ts_seconds {
     where
         D: de::Deserializer<'de>,
     {
-        Ok(try!(
-            d.deserialize_i64(MillisecondsTimestampVisitor)
-                .map(|dt| dt.with_timezone(&Utc))
-        ))
+        Ok(r#try!(d
+            .deserialize_i64(MillisecondsTimestampVisitor)
+            .map(|dt| dt.with_timezone(&Utc))))
     }
 
     /// Serialize a UTC datetime into an integer number of milliseconds since the epoch
@@ -88,7 +87,7 @@ pub mod ts_seconds {
     impl<'de> de::Visitor<'de> for MillisecondsTimestampVisitor {
         type Value = DateTime<FixedOffset>;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(formatter, "a unix timestamp in milliseconds")
         }
 
@@ -230,7 +229,7 @@ pub mod option_ts_milliseconds {
     impl<'de> de::Visitor<'de> for MillisecondsTimestampVisitor {
         type Value = DateTime<FixedOffset>;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(formatter, "a unix timestamp in milliseconds")
         }
 

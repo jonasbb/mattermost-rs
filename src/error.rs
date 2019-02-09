@@ -1,3 +1,10 @@
+#![allow(deprecated)]
+
+use error_chain::{
+    error_chain, error_chain_processing, impl_error_chain_kind, impl_error_chain_processed,
+    impl_extract_backtrace,
+};
+
 error_chain! {
     // Automatic conversions between this error chain and other
     // error chains. In this case, it will e.g. generate an

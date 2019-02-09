@@ -1,13 +1,12 @@
+use crate::{react_to_message, ServerConfig};
 use lazy_static::lazy_static;
 use log::debug;
 use mattermost_structs::websocket::Status;
-use react_to_message;
 use std::sync::{Arc, Mutex};
 use ws::{
     util::{Timeout, Token},
     CloseCode, Frame, Handshake, OpCode, Sender,
 };
-use ServerConfig;
 
 const PING: Token = Token(1);
 const PING_TIMEOUT: u64 = 10_000;

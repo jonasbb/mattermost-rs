@@ -1,20 +1,6 @@
-extern crate chrono;
-extern crate chrono_tz;
-extern crate env_logger;
-extern crate error_chain;
-extern crate lazy_static;
-extern crate log;
-extern crate mattermost_structs;
-extern crate openssl_probe;
-extern crate serde_derive;
-extern crate serde_json;
-extern crate serde_yaml;
-extern crate structopt;
-extern crate url;
-extern crate ws;
-
 mod websocket_client;
 
+use crate::websocket_client::WsClient;
 use chrono_tz::Europe::Berlin as TzBerlin;
 use error_chain::{quick_main, ChainedError};
 use log::{debug, error, warn};
@@ -23,7 +9,7 @@ use mattermost_structs::{
     websocket::{Events, Message, Status},
     Result,
 };
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
@@ -34,7 +20,6 @@ use std::{
 };
 use structopt::StructOpt;
 use url::Url;
-use websocket_client::WsClient;
 use ws::connect;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -224,7 +209,7 @@ fn react_to_message(client: &mut WsClient, message: &str) {
     if let Ok(Message::Push(msg)) = serde_json::from_str::<Message>(message) {
         debug!("Received message:\n{:?}", msg);
 
-        use Events::*;
+        use crate::Events::*;
         match msg.event {
             Hello { .. } => {
                 client.own_id = Some(msg.broadcast.user_id);
@@ -246,7 +231,7 @@ fn react_to_message(client: &mut WsClient, message: &str) {
             } => {
                 // React to some messages
                 if client.own_id == Some(post.user_id) && post.message.starts_with("@me") {
-                    let mut client = Client::new(
+                    let client = Client::new(
                         client.serverconfig.base_url.clone(),
                         client.serverconfig.token.clone(),
                     );

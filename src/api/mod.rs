@@ -1,9 +1,13 @@
+use crate::{
+    error::{ErrorKind, Result, ResultExt},
+    websocket::Post,
+};
 use chrono::prelude::{DateTime, Utc};
-use error::{ErrorKind, Result, ResultExt};
+use log::debug;
 use reqwest::{Client as WebClient, StatusCode};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, fmt, str::FromStr};
 use url::Url;
-use websocket::Post;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Client {
@@ -130,11 +134,11 @@ impl Client {
 #[serde(deny_unknown_fields)]
 pub struct User {
     pub id: String,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub create_at: DateTime<Utc>,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub update_at: DateTime<Utc>,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub delete_at: DateTime<Utc>,
     pub username: String,
     pub first_name: String,
@@ -153,13 +157,13 @@ pub struct User {
     // pub props: {},
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "::serialize::option_ts_milliseconds",
+        with = "crate::serialize::option_ts_milliseconds",
         default
     )]
     pub last_password_update: Option<DateTime<Utc>>,
     #[serde(
         skip_serializing_if = "Option::is_none",
-        with = "::serialize::option_ts_milliseconds",
+        with = "crate::serialize::option_ts_milliseconds",
         default
     )]
     pub last_picture_update: Option<DateTime<Utc>>,
@@ -187,7 +191,7 @@ pub enum UserRole {
 }
 
 impl fmt::Display for UserRole {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             UserRole::SystemUser => write!(f, "system_user"),
             UserRole::SystemAdmin => write!(f, "system_admin"),
@@ -214,21 +218,21 @@ impl FromStr for UserRole {
 #[serde(rename_all = "snake_case")]
 pub struct Channel {
     id: String,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub create_at: DateTime<Utc>,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub update_at: DateTime<Utc>,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub delete_at: DateTime<Utc>,
     pub team_id: String,
     #[serde(rename = "type")]
     pub type_: ChannelType,
     pub display_name: String,
     pub header: String,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub last_post_at: DateTime<Utc>,
     pub total_msg_count: u64,
-    #[serde(with = "::serialize::ts_seconds")]
+    #[serde(with = "crate::serialize::ts_seconds")]
     pub extra_update_at: DateTime<Utc>,
     pub creator_id: String,
 }

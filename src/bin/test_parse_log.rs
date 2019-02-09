@@ -1,6 +1,3 @@
-extern crate mattermost_structs;
-extern crate serde_json;
-
 use mattermost_structs::websocket::{Message, MessagePush};
 use serde_json::{Deserializer, Value};
 use std::io::stdin;

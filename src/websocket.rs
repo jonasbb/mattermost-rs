@@ -1,9 +1,12 @@
-use api::{Channel, ChannelType, User};
+use crate::{
+    api::{Channel, ChannelType, User},
+    serialize,
+};
 use chrono::prelude::{DateTime, Utc};
-use serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Message {
@@ -33,7 +36,7 @@ pub enum MessageStatus {
     Ok,
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(
     tag = "event",
