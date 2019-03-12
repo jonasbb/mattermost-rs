@@ -1,5 +1,5 @@
 use crate::{
-    api::{Channel, ChannelType, User},
+    api::{Channel, ChannelType, User, UserRole},
     serialize,
 };
 use chrono::prelude::{DateTime, Utc};
@@ -158,6 +158,10 @@ pub enum Events {
         #[serde(with = "::serde_with::json::nested")]
         team: Team,
     },
+    ChannelMemberUpdated {
+        #[serde(rename = "channelMember", with = "::serde_with::json::nested")]
+        channel_member: ChannelMember,
+    },
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
@@ -226,9 +230,10 @@ pub enum PostType {
     SystemRemoveFromChannel,
     SystemJoinTeam,
     SystemRemoveFromTeam,
+    SystemLeaveChannel,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct PostProps {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -261,6 +266,8 @@ pub struct PostProps {
     added_user_id: Option<String>,
     #[serde(rename = "userId", skip_serializing_if = "Option::is_none")]
     user_id: Option<String>,
+    #[serde(skip_serializing_if = "HashMap::is_empty", default)]
+    channel_mentions: HashMap<String, ChannelInfo>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -317,7 +324,62 @@ pub struct Team {
     pub allow_open_invite: bool,
     #[serde(default)]
     pub scheme_id: Option<String>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serialize::option_ts_milliseconds",
+        default
+    )]
+    pub last_team_icon_update: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Config(pub BTreeMap<String, String>);
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct ChannelMember {
+    pub channel_id: String,
+    pub user_id: String,
+    #[serde(with = "::serde_with::rust::StringWithSeparator::<::serde_with::SpaceSeparator>")]
+    pub roles: HashSet<UserRole>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serialize::option_ts_milliseconds",
+        default
+    )]
+    pub last_viewed_at: Option<DateTime<Utc>>,
+    pub msg_count: u32,
+    pub mention_count: u32,
+    pub notify_props: NotifyProps,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "serialize::option_ts_milliseconds",
+        default
+    )]
+    pub last_update_at: Option<DateTime<Utc>>,
+    pub scheme_user: bool,
+    pub scheme_admin: bool,
+    #[serde(with = "::serde_with::rust::StringWithSeparator::<::serde_with::SpaceSeparator>")]
+    pub explicit_roles: HashSet<UserRole>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[serde(deny_unknown_fields)]
+pub struct NotifyProps {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub desktop: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ignore_channel_mentions: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mark_unread: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub push: Option<String>,
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ChannelInfo {
+    pub display_name: String,
+}

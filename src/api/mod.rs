@@ -188,6 +188,7 @@ pub struct Timezone {
 pub enum UserRole {
     SystemUser,
     SystemAdmin,
+    ChannelUser,
 }
 
 impl fmt::Display for UserRole {
@@ -195,6 +196,7 @@ impl fmt::Display for UserRole {
         match *self {
             UserRole::SystemUser => write!(f, "system_user"),
             UserRole::SystemAdmin => write!(f, "system_admin"),
+            UserRole::ChannelUser => write!(f, "channel_user"),
         }
     }
 }
@@ -206,6 +208,7 @@ impl FromStr for UserRole {
         match s {
             "system_user" => Ok(UserRole::SystemUser),
             "system_admin" => Ok(UserRole::SystemAdmin),
+            "channel_user" => Ok(UserRole::ChannelUser),
             _ => Err(format!(
                 "Unexpected value '{}', expected one of 'system_user', 'system_admin'",
                 s
