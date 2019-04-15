@@ -189,6 +189,7 @@ pub enum UserRole {
     SystemUser,
     SystemAdmin,
     ChannelUser,
+    ChannelAdmin,
 }
 
 impl fmt::Display for UserRole {
@@ -197,6 +198,7 @@ impl fmt::Display for UserRole {
             UserRole::SystemUser => write!(f, "system_user"),
             UserRole::SystemAdmin => write!(f, "system_admin"),
             UserRole::ChannelUser => write!(f, "channel_user"),
+            UserRole::ChannelAdmin => write!(f, "channel_admin"),
         }
     }
 }
@@ -209,6 +211,7 @@ impl FromStr for UserRole {
             "system_user" => Ok(UserRole::SystemUser),
             "system_admin" => Ok(UserRole::SystemAdmin),
             "channel_user" => Ok(UserRole::ChannelUser),
+            "channel_admin" => Ok(UserRole::ChannelAdmin),
             _ => Err(format!(
                 "Unexpected value '{}', expected one of 'system_user', 'system_admin'",
                 s

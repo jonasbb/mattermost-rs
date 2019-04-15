@@ -213,6 +213,8 @@ pub struct Post {
     pub file_ids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub has_reactions: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<PostMetadata>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -268,6 +270,16 @@ pub struct PostProps {
     user_id: Option<String>,
     #[serde(skip_serializing_if = "HashMap::is_empty", default)]
     channel_mentions: HashMap<String, ChannelInfo>,
+    #[serde(rename = "removedUserId", skip_serializing_if = "Option::is_none")]
+    removed_user_id: Option<String>,
+}
+
+/// THis has a field `embed` in json, which is very complex and not modelled here
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+// #[serde(deny_unknown_fields)]
+pub struct PostMetadata {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    reactions: Vec<Reaction>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
