@@ -203,6 +203,7 @@ pub struct Post {
     pub parent_id: String,
     pub original_id: String,
     pub message: String,
+    pub message_source: Option<String>,
     #[serde(rename = "type")]
     pub type_: PostType,
     pub props: PostProps,
